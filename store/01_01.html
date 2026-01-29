@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>스토어 설정</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="css/navbar.css?v=val_251015_001">
+    <link rel="stylesheet" href="test/test.css?v=val_251015_001">
+    <link rel="stylesheet" href="css/admin_store.css?v=val_251015_001">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        .sec-head { font-weight:800; margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+        .grid { display:grid; gap:14px; }
+        .g-2 { grid-template-columns:1fr 1fr; }
+        @media (max-width:840px) { .g-2 { grid-template-columns:1fr; } }
+        .row { display:flex; gap:14px; align-items:center; }
+        .field { display:flex; flex-direction:column; gap:8px; }
+        .label { font-weight:700; color:#3a4a62; }
+        .radio-group, .check-group { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+        .pill { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--cb-line); border-radius:999px; background:#fff; cursor:pointer; transition:.15s; }
+        .pill input { accent-color:var(--accent); }
+        .pill:hover { background:#f2f5fb; }
+        .key-grid { display:grid; gap:10px; grid-template-columns:160px 1fr; align-items:center; }
+        @media (max-width:720px) { .key-grid { grid-template-columns:1fr; } .key-grid .klabel { padding-top:8px; } }
+        .klabel { color:#445267; font-weight:700; }
+        .divider { height:1px; background:var(--cb-line); margin:10px 0 6px; }
+        .footer { display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+        .note { background:#fbfdff; border:1px dashed #cfe0ff; border-radius:12px; padding:12px; color:#2d4a7b; font-size:14px; }
+        .inline-badge { font-size:12px; border-radius:999px; padding:3px 8px; background:#eef3ff; color:#2b63f1; margin-left:6px; }
+        .danger { color:#b02a37; }
+        .good { color:#1e7e34; }
+    </style>
+</head>
+<body>
+    <aside class="cb-sidemenu"><!--개발시 해당 메뉴는 기존 메뉴를 사용하세요 {% include 'admin/navbar.html' %} -->
+        <div class="cb-sidemenu-inner cb-menu-style">
+            <div class="cb-menu-admin-logo" style="text-align:center;margin-bottom:12px;"><img src="test/testai.png" alt="사이트 로고" style="max-width:150px;object-fit:contain;"></div>
+            <div class="cb-menu-admin-name">테스트 관리자님<br></div>
+            <a><span class="cb-menu-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>로그아웃</a>
+            <div class="cb-menu-toggle-all" style="display:flex;gap:15px;justify-content:flex-end;padding:12px;">
+                <a type="button" onclick="expandAllMenus()" class="toggle_all" id="expandAllBtn_p">＋</a>
+                <a type="button" onclick="collapseAllMenus()" class="toggle_all" id="collapseAllBtn_p">－</a>
+            </div>
+            <div class="cb-menu-group" data-key="menu_general">
+                <div class="cb-menu-group-title" onclick="toggleMenuGroup(this)">스토어 관리</div>
+                <div class="cb-menu-group-body">
+                    <a href="01_01.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-store"></i></span>스토어 설정</a>
+                    <a href="01_02.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-chart-line"></i></span>매출 통계</a>
+                    <a href="01_03.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-tags"></i></span>카테고리 관리</a>
+                    <a href="01_04.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-boxes-stacked"></i></span>상품 관리</a>
+                    <a href="01_05.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>주문/결제 관리</a>
+                    <a href="01_06.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-basket-shopping"></i></span>장바구니 내역</a>
+                    <a href="01_07.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-ticket"></i></span>쿠폰 발행</a>
+                </div>
+            </div>
+            <a>&nbsp;</a>
+        </div>
+    </aside>
+    <div class="wrap">
+        <div class="title">스토어 설정
+            <select id="siteIdSelect" name="site_id" onchange="location.href='?site_id='+this.value" style="width:200px;">
+                <option value="">전체 사이트</option>
+                <option value="acb_allteaching_child">올티칭 유치원</option>
+                <option value="acb_academy_allteaching">올티칭 수학학원</option>
+                <option value="acb_songchon">세무법인 송촌</option>
+                <option value="acb_study_yi">올티칭스터디카페 물푸레점</option>
+                <option value="acb_mokdongmath">목동최상위수학학원</option>
+                <option value="acb_lms1">헬프lms</option>
+                <option value="acb_study_gm">스터디카페 광명점</option>
+                <option value="acb_study">구했어</option>
+                <option value="acb_studycafe">스터디카페</option>
+                <option value="acb_at_test">챗봇 테스트</option>
+                <option value="acb_culture">올티칭 컬쳐</option>
+                <option value="acb_cam">올티칭 캠퍼스</option>
+                <option value="acb_biz">올티칭 캠퍼스</option>
+                <option value="acb_ecce">올티칭 학점은행</option>
+                <option value="acb_ai">올티칭 AI</option>
+                <option value="acb_scce">올티칭 서사평</option>
+            </select>
+        </div>
+        <div class="ad_sub">※ 사이트 선택은 메인 관리자만 선택 가능합니다.</div>
+        <div class="sub">스토어 온/오프, 결제 모드(실/테스트), 토스 키, 배송사 및 도서산간 안내를 설정합니다.</div>
+        <form id="storeForm" method="post" action="/admin/store/settings">
+            <div class="card">
+                <div class="sec-head">기본 설정</div>
+                <div class="grid g-2">
+                    <div class="field">
+                        <div class="label">스토어 사용 여부</div>
+                        <div class="radio-group" id="useStore">
+                            <label class="pill"><input type="radio" name="store_enabled" value="Y" checked> 사용(Y)</label>
+                            <label class="pill"><input type="radio" name="store_enabled" value="N"> 미사용(N)</label>
+                        </div>
+                        <div class="hint">N 선택 시, 관리자별 사이트 목록에 등록되어 있어도 <span class="danger">스토어 메뉴는 숨김 처리</span>됩니다.</div>
+                    </div>
+                    <div class="field">
+                        <div class="label">실결제 여부</div>
+                        <div class="radio-group" id="realPay">
+                            <label class="pill"><input type="radio" name="real_payment" value="Y"> 실결제(Y)</label>
+                            <label class="pill"><input type="radio" name="real_payment" value="N" checked> 테스트 결제(N)</label>
+                        </div>
+                        <div class="hint">Y 선택 시 <span class="good">Live 키</span>, N 선택 시 <span class="muted">Test 키</span>가 사용됩니다.</div>
+                    </div>
+                </div>
+                <div class="divider"></div>
+                <div class="note">저장 시 유효성 검사:
+                    <ul style="margin:8px 0 0 18px;">
+                        <li>실결제(Y): <code>live_ck_</code>, <code>live_sk_</code> *필수*</li>
+                        <li>테스트(N): <code>test_ck_</code>, <code>test_sk_</code> *필수*</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <div class="sec-head">토스 페이 키 설정 <span class="inline-badge">Toss Payments</span></div>
+                <div class="key-grid">
+                    <div class="klabel">실결제 클라이언트 키</div>
+                    <input class="box" type="text" name="toss_live_client_key" placeholder="live_ck_..." pattern="^live_ck_[A-Za-z0-9_-]+$" />
+                    <div class="klabel">실결제 시크릿 키</div>
+                    <input class="box" type="password" name="toss_live_secret_key" placeholder="live_sk_..." pattern="^live_sk_[A-Za-z0-9_-]+$" />
+                </div>
+                <div class="divider"></div>
+                <div class="key-grid">
+                    <div class="klabel">테스트 클라이언트 키</div>
+                    <input class="box" type="text" name="toss_test_client_key" placeholder="test_ck_..." pattern="^test_ck_[A-Za-z0-9_-]+$" />
+                    <div class="klabel">테스트 시크릿 키</div>
+                    <input class="box" type="password" name="toss_test_secret_key" placeholder="test_sk_..." pattern="^test_sk_[A-Za-z0-9_-]+$" />
+                </div>
+                <div class="hint" style="margin-top:10px;">※ 실결제/테스트 전환은 위의 <b>실결제 여부</b> 값으로 자동 선택됩니다.</div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <div class="sec-head">배송 설정</div>
+                <div class="grid">
+                    <div class="field">
+                        <div class="label">배송사 설정</div>
+                        <select class="box" name="default_courier" id="defaultCourier">
+                            <option value="">선택하세요</option>
+                            <option value="cjlogistics">CJ대한통운</option>
+                            <option value="lotte">롯데택배</option>
+                            <option value="kr-post">우체국택배</option>
+                            <option value="hanjin">한진택배</option>
+                        </select>
+                        <div class="hint">선택에 따라 <span class="muted">배송조회 링크/현황 API</span>가 변경됩니다.</div>
+                        <div class="hint">* 개별 상품에 배송사가 지정된 경우, 해당 개별 설정이 <b>우선</b>됩니다.</div>
+                    </div>
+                    <div class="field">
+                        <div class="label">도서산간지역 추가 배송비 안내</div>
+                        <textarea class="box" name="remote_area_notice" placeholder="예) 제주/도서산간 지역은 추가 배송비 3,000원이 부과됩니다. 상세 지역은 공지사항 참고 바랍니다."></textarea>
+                        <div class="hint">입력 시 <b>상품 상세 페이지</b>의 결제 버튼 위에 고지됩니다.</div>
+                    </div>
+                    <div class="field">
+                        <div class="label">배송비 설정</div>
+                        <div class="row" style="gap:10px;flex-wrap:wrap">
+                            <div class="field" style="min-width:260px">
+                                <div class="label" style="font-weight:600">기본 배송비(원)</div>
+                                <input class="box" type="number" name="shipping_fee_base" min="0" step="100" placeholder="예: 3000" />
+                            </div>
+                            <div class="field" style="min-width:260px">
+                                <div class="label" style="font-weight:600">무료 배송 기준 금액(원)</div>
+                                <input class="box" type="number" name="shipping_free_min" min="0" step="1000" placeholder="예: 30000" />
+                            </div>
+                        </div>
+                        <div class="hint">상품 구매 시 결제금액이 기준 금액 이상이면 배송비를 0원으로 처리합니다.</div>
+                        <div class="hint">* 개별 상품에 배송비가 지정된 경우, 해당 개별 설정이 <b>우선</b>됩니다.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <div class="sec-head">정책/고지 문구</div>
+                <div class="grid">
+                    <div class="field">
+                        <div class="label">이용약관</div>
+                        <textarea class="box" name="policy_terms" placeholder="이용약관 내용을 입력하세요. (마크다운/HTML 허용)"></textarea>
+                        <div class="hint">고객의 서비스 이용 조건·제한, 권리/의무를 안내합니다.</div>
+                    </div>
+                    <div class="field">
+                        <div class="label">개인정보처리방침</div>
+                        <textarea class="box" name="policy_privacy" placeholder="개인정보 처리 목적/항목/보유기간/제3자 제공/위탁/보안 조치 등"></textarea>
+                        <div class="hint">전자상거래법·개인정보보호법 고지 항목을 포함해 주세요.</div>
+                    </div>
+                    <div class="field">
+                        <div class="label">환불/교환/배송정책</div>
+                        <textarea class="box" name="policy_refund_shipping" placeholder="교환/반품 조건, 접수 기한, 배송비(왕복/도서산간), 처리 절차, 환불 소요기간 등"></textarea>
+                        <div class="hint">배송 지연·파손 등 특이 케이스, 고객센터 연락수단을 명시하면 분쟁 예방에 좋아요.</div>
+                    </div>
+                    <div class="field">
+                        <div class="label">노출 위치</div>
+                        <div class="check-group">
+                            <label class="pill"><input type="checkbox" name="show_terms_footer" value="Y"> 푸터에 “이용약관” 링크</label>
+                            <label class="pill"><input type="checkbox" name="show_privacy_footer" value="Y"> 푸터에 “개인정보처리방침” 링크</label>
+                            <label class="pill"><input type="checkbox" name="show_refund_footer" value="Y"> 푸터에 “환불/교환/배송정책” 링크</label>
+                        </div>
+                        <div class="hint">정적 페이지 라우팅이 있다면 저장 시 각각 전용 페이지로 노출하도록 매핑하세요.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <button type="button" class="btn" id="btnCancel">취소</button>
+                <button type="submit" class="btn primary" id="btnSave">저장</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        const initial = {
+            store_enabled: "Y",
+            real_payment: "N",
+            toss_live_client_key: "",
+            toss_live_secret_key: "",
+            toss_test_client_key: "",
+            toss_test_secret_key: "",
+            default_courier: "",
+            remote_area_notice: "",
+            policy_terms: "",
+            policy_privacy: "",
+            policy_refund_shipping: "",
+            show_terms_footer: "",
+            show_privacy_footer: "",
+            show_refund_footer: ""
+        };
+
+        (function () {
+            document.querySelector(`input[name="store_enabled"][value="${initial.store_enabled}"]`)?.click();
+            document.querySelector(`input[name="real_payment"][value="${initial.real_payment}"]`)?.click();
+            for (const [k, v] of Object.entries(initial)) {
+                const el = document.querySelector(`[name="${k}"]`);
+                if (!el || typeof v !== "string") continue;
+                el.value = v;
+            }
+        })();
+
+        const form = document.getElementById("storeForm");
+        const realPayRadios = document.querySelectorAll('input[name="real_payment"]');
+
+        function validateKeys() {
+            const real = document.querySelector('input[name="real_payment"]:checked')?.value === "Y";
+            const liveCK = form.toss_live_client_key.value.trim();
+            const liveSK = form.toss_live_secret_key.value.trim();
+            const testCK = form.toss_test_client_key.value.trim();
+            const testSK = form.toss_test_secret_key.value.trim();
+
+            if (real) {
+                if (!/^live_ck_[A-Za-z0-9_-]+$/.test(liveCK) || !/^live_sk_[A-Za-z0-9_-]+$/.test(liveSK)) {
+                    alert("실결제 모드에서는 live_ck_/live_sk_ 키가 필요합니다.");
+                    return false;
+                }
+            } else {
+                if (!/^test_ck_[A-Za-z0-9_-]+$/.test(testCK) || !/^test_sk_[A-Za-z0-9_-]+$/.test(testSK)) {
+                    alert("테스트 모드에서는 test_ck_/store_sk_ 키가 필요합니다.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function switchPlaceholders() {
+            const real = document.querySelector('input[name="real_payment"]:checked')?.value === "Y";
+            form.toss_live_client_key.placeholder = "live_ck_...";
+            form.toss_live_secret_key.placeholder = "live_sk_...";
+            form.toss_test_client_key.placeholder = "test_ck_...";
+            form.toss_test_secret_key.placeholder = "test_sk_...";
+
+            [form.toss_live_client_key, form.toss_live_secret_key, form.toss_test_client_key, form.toss_test_secret_key]
+                .forEach(i => i.style.fontWeight = "normal");
+
+            if (real) {
+                form.toss_live_client_key.style.fontWeight = "700";
+                form.toss_live_secret_key.style.fontWeight = "700";
+            } else {
+                form.toss_test_client_key.style.fontWeight = "700";
+                form.toss_test_secret_key.style.fontWeight = "700";
+            }
+        }
+
+        realPayRadios.forEach(r => r.addEventListener("change", switchPlaceholders));
+        switchPlaceholders();
+
+        form.addEventListener("submit", (e) => {
+            if (!validateKeys()) {
+                e.preventDefault();
+                return;
+            }
+        });
+
+        document.getElementById("btnCancel").addEventListener("click", () => {
+            history.length > 1 ? history.back() : location.href = "/admin/store";
+        });
+
+        function toggleMenuGroup(el) {
+            const group = el.closest(".cb-menu-group");
+            const key = group.dataset.key;
+            const isCollapsed = group.classList.toggle("collapsed");
+            const states = JSON.parse(localStorage.getItem("cb_menu_states") || "{}");
+            states[key] = !isCollapsed;
+            localStorage.setItem("cb_menu_states", JSON.stringify(states));
+        }
+
+        function expandAllMenus() {
+            const states = {};
+            document.querySelectorAll(".cb-menu-group[data-key]").forEach(group => {
+                group.classList.remove("collapsed");
+                states[group.getAttribute("data-key")] = true;
+            });
+            localStorage.setItem("cb_menu_states", JSON.stringify(states));
+        }
+
+        function collapseAllMenus() {
+            const states = {};
+            document.querySelectorAll(".cb-menu-group[data-key]").forEach(group => {
+                group.classList.add("collapsed");
+                states[group.getAttribute("data-key")] = false;
+            });
+            localStorage.setItem("cb_menu_states", JSON.stringify(states));
+        }
+    </script>
+</body>
+</html>

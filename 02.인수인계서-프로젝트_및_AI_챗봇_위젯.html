@@ -1,0 +1,808 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>프로젝트 및 AI 챗봇 위젯 (포트폴리오용 익명화 버전)</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        :root{
+            --bg:#f6f8fb; --card:#fff; --text:#0f172a; --sub:#64748b; --line:#e5e7eb;
+            --accent:#2563eb; --mono: ui-monospace,SFMono-Regular,Menlo,Consolas,Monaco,monospace;
+            --r:14px; --shadow:0 8px 24px rgba(15,23,42,.08);
+            --ok:#16a34a; --warn:#f59e0b; --danger:#b91c1c;
+        }
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--bg);color:var(--text);font:14px/1.65 system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,"Noto Sans KR",sans-serif}
+        a{color:var(--accent);text-decoration:none}
+        .wrap{max-width:1200px;margin:0 auto;padding:24px}
+        .header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:12px}
+        h1{margin:0;font-size:22px}
+        .toc,.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+        .toc{padding:16px;margin:12px 0 20px}
+        .toc ol{margin:6px 0 0 18px}
+        h2{margin:0 0 10px 0;font-size:18px}
+        h3{margin:18px 0 8px 0;font-size:15px}
+        .card{padding:16px;margin:16px 0}
+        .muted{color:var(--sub)}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+        th{background:#f8fafc}
+        code,pre{font-family:var(--mono);font-size:12.5px}
+        .code{background:#0b1220;color:#e5e7eb;border-radius:10px;padding:12px;overflow:auto}
+        .k{white-space:nowrap}
+        @media (max-width:960px){ .k{white-space:normal} }
+
+        /* 공개용 고지 */
+        .notice{
+            display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+            padding:12px;border:1px dashed #cbd5e1;border-radius:12px;background:#fff;
+            margin-top:10px
+        }
+        .pill{
+            display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--line);
+            border-radius:999px;background:#fff;color:#334155;font-size:12px;font-weight:700
+        }
+        .pill.ok{border-color:#d1fae5;background:#ecfdf5;color:#065f46}
+        .pill.warn{border-color:#fde68a;background:#fffbeb;color:#92400e}
+        .pill.danger{border-color:#fecaca;background:#fef2f2;color:#991b1b}
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="header">
+            <h1>프로젝트 및 AI 챗봇 위젯 <span class="muted" style="font-size:12px">· 포트폴리오용 익명화</span></h1>
+        </div>
+
+        <!-- 공개용 고지 -->
+        <section class="card">
+            <h2>0) 공개용 고지</h2>
+            <div class="notice">
+                <span class="pill ok">실계정/고객사명 제거</span>
+                <span class="pill ok">실 도메인/IP 마스킹</span>
+                <span class="pill warn">API Key/토큰/시크릿 미기재</span>
+                <span class="pill warn">서버 내부 경로/테이블 실명 일부 일반화</span>
+                <span class="pill danger">운영값을 그대로 복사 사용 금지</span>
+            </div>
+            <p class="muted" style="margin:10px 0 0 0">
+                본 문서는 포트폴리오 공개를 위해 민감정보(도메인/IP, API 키/토큰, 고객 식별자, 운영 경로 등)를
+                <b>placeholder</b>로 치환했습니다. 흐름/구조 설명 위주로만 참고하세요.
+            </p>
+        </section>
+
+        <div class="toc">
+            <strong>목차</strong>
+            <ol>
+                <li><a href="#tree">디렉터리 트리</a></li>
+                <li><a href="#explain">파일, 폴더별 상세 설명</a></li>
+                <li><a href="#widget">AI 챗봇 위젯 사용법</a></li>
+                <li><a href="#widget-realtime">AI 채팅 위젯 (실시간 위젯)</a></li>
+            </ol>
+        </div>
+
+        <!-- 디렉터리 트리 (폴더 여닫기 + 하위 파일 표시) -->
+        <section id="tree" class="card">
+            <h2>1) 디렉터리 트리</h2>
+
+            <!-- 전체 열기/닫기 컨트롤 -->
+            <div id="dir-tree-controls" style="margin: 6px 0 10px; display: flex; gap: 8px;">
+                <button id="expand-all" type="button" style="padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;background:#f9fafb;cursor:pointer;">전체 열기</button>
+                <button id="collapse-all" type="button" style="padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;background:#f9fafb;cursor:pointer;">전체 닫기</button>
+            </div>
+
+            <div class="muted" style="margin-bottom:10px">
+                ※ 공개용으로 <b>실 서비스명/고객사명/사이트ID</b>는 <code>tenant_x</code>, <code>site_x</code> 형태로 일반화했습니다.
+            </div>
+
+            <div id="dir-tree"></div>
+        </section>
+
+        <style>
+            #dir-tree {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+                font-size: 13px;
+                line-height: 1.35;
+                user-select: none;
+            }
+            .tree {
+                margin: 0;
+                padding: 0 0 0 12px;
+                list-style: none;
+                position: relative;
+            }
+            .tree:before {
+                content: "";
+                position: absolute;
+                left: 7px;
+                top: 0;
+                bottom: 0;
+                width: 1px;
+                background: #e5e7eb;
+            }
+            .node {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 2px 4px;
+                border-radius: 6px;
+                position: relative;
+            }
+            .node:hover { background: #f3f4f6; }
+            .toggle {
+                width: 16px;height: 16px;
+                display: inline-flex;align-items: center;justify-content: center;
+                margin-left: -8px;margin-right: 2px;
+                cursor: pointer;border-radius: 4px;
+            }
+            .toggle:hover { background: #e5e7eb; }
+            .caret {
+                transition: transform 0.15s ease;
+                width: 10px;height: 10px;display: inline-block;
+                border-right: 1.5px solid #6b7280;
+                border-bottom: 1.5px solid #6b7280;
+                transform: rotate(-45deg);
+                margin-left: 2px;
+            }
+            .caret.open { transform: rotate(45deg); margin-top: 2px; }
+            .icon { width: 16px;height: 16px;display: inline-flex; }
+            .children { margin-left: 18px;padding-left: 12px;border-left: 1px dashed #e5e7eb; }
+            .file { color: #111827;white-space: nowrap; }
+            .folder { color: #0f172a;font-weight: 600; }
+            .sr-only {
+                position: absolute;width: 1px;height: 1px;padding: 0;margin: -1px;
+                overflow: hidden;clip: rect(0,0,0,0);white-space: nowrap;border: 0;
+            }
+        </style>
+
+        <script>
+            // 아이콘 렌더러 (SVG 반환)
+            function iconFor(node) {
+                const ext = node.type === "dir"
+                    ? "dir"
+                    : (node.name.split(".").pop() || "").toLowerCase();
+
+                const icons = {
+                    dir: `
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-label="folder" role="img">
+            <path fill="#F6C453" d="M10 4l2 2h7a2 2 0 0 1 2 2v1H3V6a2 2 0 0 1 2-2h5z"/>
+            <path fill="#F2A94A" d="M3 9h20v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/>
+        </svg>`,
+                    py: `
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-label="python" role="img">
+            <path fill="#3776AB" d="M12 2c4 0 4 3 4 3v3H8V6s0-4 4-4z"/>
+            <circle cx="10" cy="5.5" r="0.9" fill="#fff"/>
+            <path fill="#FFD343" d="M12 22c-4 0-4-3-4-3v-3h8v2s0 4-4 4z"/>
+            <circle cx="14" cy="18.5" r="0.9" fill="#fff"/>
+            <rect x="6" y="8" width="12" height="8" rx="2" fill="#3776AB" opacity=".15"/>
+        </svg>`,
+                    js: `
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-label="javascript" role="img">
+            <path fill="#F7DF1E" d="M3 3h18v18H3z"/>
+            <path fill="#000" d="M10.5 16.7c0 1.8-1.1 2.7-2.7 2.7-.9 0-1.6-.2-2.2-.7l.8-1.3c.4.3.8.5 1.3.5.6 0 1-.3 1-.9V11h1.8v5.7zm4.2 2.6c-1.4 0-2.4-.6-3.1-1.6l1.3-1c.4.6.9 1 1.7 1 .7 0 1.1-.3 1.1-.8 0-.5-.3-.7-1.2-1l-.4-.2c-1.1-.4-2-1-2-2.3 0-1.2.9-2.1 2.4-2.1 1.1 0 1.9.4 2.5 1.3l-1.2 1c-.3-.5-.7-.7-1.2-.7-.5 0-.9.3-.9.7 0 .5.4.7 1.3 1l.4.2c1.3.5 2  1.1 2 2.4 0 1.4-1.1 2.1-2.7 2.1z"/>
+        </svg>`,
+                    css: `
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-label="css" role="img">
+            <path fill="#264DE4" d="M3 3l1.7 18.6L12 23l7.3-1.4L21 3H3z"/>
+            <path fill="#2965F1" d="M12 5v15.8l5.9-1.1L19.2 5H12z"/>
+            <path fill="#EBEBEB" d="M12 12.6H9.3l-.2-2.2H12V8.3H7.1l.6 6.3H12v-2z"/>
+            <path fill="#fff" d="M12 16.1l-2.2.5-.1-1.5H8l.2 2.9 3.8.8V16.1z"/>
+        </svg>`,
+                    html: `
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-label="html" role="img">
+            <path fill="#E44D26" d="M3 3l1.7 18.6L12 23l7.3-1.4L21 3H3z"/>
+            <path fill="#F16529" d="M12 5v15.8l5.9-1.1L19.2 5H12z"/>
+            <path fill="#EBEBEB" d="M12 12.5H9l-.2-2.3H12V8.3H7.1l.6 6.3H12v-2.1z"/>
+            <path fill="#fff" d="M12 16.1l2.2-.5.2-1.7H12v2.2zm0-7.8v1.9h3l.2-1.9H12z"/>
+        </svg>`,
+                    sh: `
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-label="terminal" role="img">
+            <rect x="2" y="4" width="20" height="16" rx="2" fill="#111827"/>
+            <path fill="#10B981" d="M6 9l3 3-3 3-1.2-1.2L6.6 12 4.8 10.2 6 9zM11 15h7v-2h-7v2z"/>
+        </svg>`,
+                    default: `
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-label="file" role="img">
+            <path fill="#E5E7EB" d="M6 2h8l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+            <path fill="#D1D5DB" d="M14 2v4h4z"/>
+        </svg>`
+                };
+                return icons[ext] || icons.default;
+            }
+
+            // ✅ 포트폴리오 공개용: "디렉터리 트리"의 파일명만 중립화/마스킹 처리
+            const TREE_DATA = {
+                name: "",
+                type: "dir",
+                open: true,
+                children: [
+                    {
+                        name: "app",
+                        type: "dir",
+                        open: true,
+                        children: [
+                            { name: "api", type: "dir", children: [
+                                { name: "ocr.py", type: "file" }
+                            ]},
+                            { name: "routes", type: "dir", children: [
+                                { name: "admin", type: "dir", children: [
+                                    { name: "__init__.py", type: "file" },
+                                    { name: "admin.py", type: "file" },
+                                    { name: "admin_sessions.py", type: "file" },
+                                    { name: "approve_manager.py", type: "file" },
+                                    { name: "auth.py", type: "file" },
+                                    { name: "chat.py", type: "file" },
+                                    { name: "chatbot.py", type: "file" },
+                                    { name: "doc_training.py", type: "file" },
+                                    { name: "find_password.py", type: "file" },
+                                    { name: "login.py", type: "file" },
+                                    { name: "member_ad.py", type: "file" },
+                                    { name: "menus.py", type: "file" },
+                                    { name: "payments.py", type: "file" },
+                                    { name: "products.py", type: "file" },
+                                    { name: "profile_edit.py", type: "file" },
+                                    { name: "register.py", type: "file" },
+                                    { name: "site_setting_edit.py", type: "file" },
+                                    { name: "stats.py", type: "file" },
+                                    { name: "training.py", type: "file" }
+                                ]},
+                                { name: "member", type: "dir", children: [
+                                    { name: "__init__.py", type: "file" },
+                                    { name: "boards.py", type: "file" },
+                                    { name: "member.py", type: "file" },
+                                    { name: "utils.py", type: "file" },
+                                    { name: "videos.py", type: "file" },
+                                    { name: "views_main.py", type: "file" }
+                                ]},
+                                { name: "__init__.py", type: "file" },
+                                { name: "legal.py", type: "file" }
+                            ]},
+
+                            <!-- CHANGED: vendor-neutral service name -->
+                            { name: "services", type: "dir", children: [
+                                { name: "llm_provider.py", type: "file" }
+                            ]},
+
+                            { name: "static", type: "dir", open: false, children: [
+                                { name: "css", type: "dir", children: [
+                                    { name: "main", type: "dir", children: [
+                                        { name: "<tenant_or_site_key>/", type: "dir", children: [
+                                            { name: "<tenant_or_site_key>_list.css", type: "file" },
+                                            { name: "<tenant_or_site_key>_main.css", type: "file" },
+                                            { name: "<tenant_or_site_key>_sub.css", type: "file" }
+                                        ] },
+                                        { name: "chatbot.css", type: "file" },
+                                        { name: "navbar.css", type: "file" }
+                                    ]},
+                                    { name: "chatbot-embed.css", type: "file" },
+                                    { name: "chatbot.css", type: "file" },
+                                    { name: "common.css", type: "file" },
+                                    { name: "data_list.css", type: "file" },
+                                    { name: "manager_list.css", type: "file" },
+                                    { name: "navbar.css", type: "file" },
+                                    { name: "session_list.css", type: "file" },
+                                    { name: "site_setting_edit.css", type: "file" },
+                                    { name: "stats.css", type: "file" }
+                                ]},
+                                { name: "img", type: "dir", children: [] },
+                                { name: "include", type: "dir", children: [] },
+
+                                { name: "ocr_upload", type: "dir", children: [] },
+                                { name: "sample", type: "dir", children: [] },
+
+                                { name: "upload", type: "dir", children: [] },
+                                { name: "uploads", type: "dir", children: [] },
+                                { name: "uploads_chat_file", type: "dir", children: [] },
+                                { name: "uploads_item_img", type: "dir", children: [] },
+
+                                <!-- CHANGED: widget embed names vendor-neutral -->
+                                { name: "chat_widget_embed.js", type: "file" },
+                                { name: "chat_widget_embed_app.js", type: "file" },
+                                { name: "chat_widget_embed_app_src.js", type: "file" },
+                                { name: "chat_widget_embed_src.js", type: "file" }
+                            ]},
+                            { name: "templates", type: "dir", children: [
+                                { name: "admin", type: "dir", children: [
+                                    { name: "manager", type: "dir", children: [
+                                        { name: "find_password.html", type: "file" },
+                                        { name: "login.html", type: "file" },
+                                        { name: "main_site_setting_edit.html", type: "file" },
+                                        { name: "manager_list.html", type: "file" },
+                                        { name: "profile_edit.html", type: "file" },
+                                        { name: "register.html", type: "file" },
+                                        { name: "session_list.html", type: "file" },
+                                        { name: "site_setting_edit.html", type: "file" },
+                                        { name: "stats.html", type: "file" },
+                                        { name: "system_info.html", type: "file" }
+                                    ]},
+                                    { name: "member", type: "dir", children: [
+                                        { name: "list.html", type: "file" }
+                                    ]},
+                                    { name: "payment", type: "dir", children: [
+                                        { name: "admin_billing_status.html", type: "file" },
+                                        { name: "admin_payments.html", type: "file" },
+                                        { name: "payment_fail.html", type: "file" },
+                                        { name: "payment_request.html", type: "file" },
+                                        { name: "payment_success.html", type: "file" },
+                                        { name: "payments.html", type: "file" },
+                                        { name: "payments_history.html", type: "file" },
+                                        { name: "subscription_fail.html", type: "file" },
+                                        { name: "subscription_request.html", type: "file" },
+                                        { name: "subscription_success.html", type: "file" }
+                                    ]},
+                                    { name: "product", type: "dir", children: [
+                                        { name: "product_form.html", type: "file" },
+                                        { name: "products.html", type: "file" }
+                                    ]},
+                                    { name: "training", type: "dir", children: [
+                                        { name: "doc_upload.html", type: "file" },
+                                        { name: "document_list.html", type: "file" },
+                                        { name: "menu_list.html", type: "file" },
+                                        { name: "menus_upload.html", type: "file" },
+                                        { name: "training_list.html", type: "file" },
+                                        { name: "upload.html", type: "file" }
+                                    ]},
+                                    { name: "chatbot.html", type: "file" },
+                                    { name: "navbar.html", type: "file" }
+                                ]},
+                                { name: "legal", type: "dir", children: [
+                                    { name: "privacy.html", type: "file" },
+                                    { name: "terms.html", type: "file" }
+                                ]},
+                                { name: "main", type: "dir", children: [
+                                    { name: "board", type: "dir", children: [
+                                        { name: "uploads_file", type: "dir", children: [] },
+                                        { name: "_macros.html", type: "file" },
+                                        { name: "list.html", type: "file" },
+                                        { name: "password.html", type: "file" },
+                                        { name: "view.html", type: "file" },
+                                        { name: "write.html", type: "file" }
+                                    ]},
+                                    { name: "member", type: "dir", children: [
+                                        { name: "join.html", type: "file" },
+                                        { name: "login.html", type: "file" }
+                                    ]},
+                                    { name: "video", type: "dir", children: [
+                                        { name: "_macros.html", type: "file" },
+                                        { name: "list.html", type: "file" },
+                                        { name: "password.html", type: "file" },
+                                        { name: "view.html", type: "file" },
+                                        { name: "write.html", type: "file" }
+                                    ]},
+                                    { name: "chatbot.html", type: "file" },
+                                    { name: "custom_view.html", type: "file" },
+                                    { name: "main.html", type: "file" },
+                                    { name: "maps.html", type: "file" },
+                                    { name: "maps_<location_a>.html", type: "file" },
+                                    { name: "maps_<location_b>.html", type: "file" },
+                                    { name: "navbar_main.html", type: "file" }
+                                ]},
+                                { name: "footer.html", type: "file" },
+                                { name: "head.html", type: "file" },
+                                { name: "script.html", type: "file" }
+                            ]},
+
+                            <!-- CHANGED: utils vendor-neutral names -->
+                            { name: "utils", type: "dir", children: [
+                                { name: "__init__.py", type: "file" },
+                                { name: "debug_tools.py", type: "file" },
+
+                                { name: "oauth_provider.py", type: "file" },
+                                { name: "oauth_provider_client.py", type: "file" },
+
+                                { name: "security.py", type: "file" },
+                                { name: "ops_notifier.py", type: "file" },
+                                { name: "payment_provider_config.py", type: "file" }
+                            ]},
+                            { name: "__init__.py", type: "file" },
+                            { name: "cli.py", type: "file" },
+                            { name: "cron.py", type: "file" },
+                            { name: "db.py", type: "file" },
+                            { name: "encryption.py", type: "file" },
+                            { name: "models.py", type: "file" }
+                        ]
+                    },
+                    { name: "app.py", type: "file" },
+                    { name: "common_imports.py", type: "file" },
+                    { name: "config.py", type: "file" },
+                    { name: "restart_chatbot.sh", type: "file" },
+                    { name: "stop_chatbot.sh", type: "file" }
+                ]
+            };
+
+            // 렌더링
+            function renderTree(container, data) {
+                container.innerHTML = "";
+                const ul = document.createElement("ul");
+                ul.className = "tree";
+                (data.children || []).forEach(child => ul.appendChild(renderNode(child)));
+                container.appendChild(ul);
+            }
+
+            function renderNode(node) {
+                const li = document.createElement("li");
+
+                const row = document.createElement("div");
+                row.className = "node";
+                row.setAttribute("role", "treeitem");
+                row.setAttribute("aria-expanded", node.type === "dir" ? !!node.open : false);
+
+                // 토글
+                const toggle = document.createElement("div");
+                toggle.className = "toggle";
+
+                let childrenWrap = null;
+
+                if (node.type === "dir") {
+                    const caret = document.createElement("span");
+                    caret.className = "caret" + (node.open ? " open" : "");
+                    toggle.appendChild(caret);
+
+                    // 자식
+                    childrenWrap = document.createElement("div");
+                    childrenWrap.className = "children";
+                    childrenWrap.style.display = node.open ? "block" : "none";
+                    (node.children || []).forEach(ch => childrenWrap.appendChild(renderNode(ch)));
+
+                    toggle.onclick = (e) => {
+                        e.stopPropagation();
+                        toggleFolder(node, caret, childrenWrap, row);
+                    };
+
+                    // 라벨 클릭으로도 토글
+                    row.onclick = () => toggleFolder(node, caret, childrenWrap, row);
+                } else {
+                    toggle.innerHTML = '<span class="sr-only">file</span>';
+                }
+
+                // 아이콘
+                const icon = document.createElement("span");
+                icon.className = "icon";
+                icon.innerHTML = iconFor(node);
+
+                // 라벨
+                const label = document.createElement("span");
+                label.textContent = node.name || "/";
+                label.className = node.type === "dir" ? "folder" : "file";
+
+                // 행 조립
+                row.appendChild(toggle);
+                row.appendChild(icon);
+                row.appendChild(label);
+                li.appendChild(row);
+
+                if (childrenWrap) li.appendChild(childrenWrap);
+                return li;
+            }
+
+            function toggleFolder(node, caret, wrap, row) {
+                const open = wrap.style.display !== "none";
+                wrap.style.display = open ? "none" : "block";
+                if (caret) caret.classList.toggle("open", !open);
+                row.setAttribute("aria-expanded", !open);
+                node.open = !open;
+            }
+
+            function setAllOpen(node, isOpen) {
+                if (node.type === "dir") {
+                    node.open = isOpen;
+                    (node.children || []).forEach(ch => setAllOpen(ch, isOpen));
+                }
+            }
+
+            (function initDirTree() {
+                const mount = document.getElementById("dir-tree");
+                const btnExpand = document.getElementById("expand-all");
+                const btnCollapse = document.getElementById("collapse-all");
+
+                renderTree(mount, TREE_DATA);
+
+                btnExpand.addEventListener("click", () => {
+                    setAllOpen(TREE_DATA, true);
+                    renderTree(mount, TREE_DATA);
+                });
+                btnCollapse.addEventListener("click", () => {
+                    setAllOpen(TREE_DATA, false);
+                    renderTree(mount, TREE_DATA);
+                });
+            })();
+        </script>
+
+        <!-- 상세설명 -->
+        <section id="explain" class="card">
+            <h2>2) 파일, 폴더별 상세 설명</h2>
+
+            <div class="muted" style="margin:0 0 10px 0">
+                공개용 문서에서 <b>고객사/서비스 실명</b>, <b>내부 식별자</b>, <b>운영 도메인</b>은
+                <code>&lt;SERVICE_ORIGIN&gt;</code>, <code>&lt;SITE_ID&gt;</code>, <code>&lt;API_KEY&gt;</code> 형태로 치환했습니다.
+            </div>
+
+            <!-- 루트 -->
+            <h3>2.1 프로젝트 루트</h3>
+            <table>
+                <thead>
+                    <tr><th class="k">경로</th><th>설명</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="k"><code>app.py</code></td>
+                        <td>서비스 실행 엔트리(웹 서버 시작점)</td>
+                        <td>운영에서는 WSGI/ASGI 또는 프로세스 매니저가 참조</td>
+                    </tr>
+                    <tr>
+                        <td class="k"><code>common_imports.py</code></td>
+                        <td>전역 공통 임포트/상수</td>
+                        <td>중복 코드를 줄이기 위한 공유 레이어</td>
+                    </tr>
+                    <tr>
+                        <td class="k"><code>config.py</code></td>
+                        <td>DB 및 외부 연동 환경 설정 로더</td>
+                        <td class="muted">※ 공개용에서는 키/도메인/경로는 문서에 기재하지 않음</td>
+                    </tr>
+                    <tr>
+                        <td class="k"><code>restart_chatbot.sh</code></td>
+                        <td>챗봇 서비스 재시작 스크립트</td>
+                        <td>운영 서버에서 프로세스 재기동용</td>
+                    </tr>
+                    <tr>
+                        <td class="k"><code>stop_chatbot.sh</code></td>
+                        <td>챗봇 서비스 중지 스크립트</td>
+                        <td>운영 서버에서 프로세스 종료용</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>2.2 <code>app/</code> 루트</h3>
+            <table>
+                <thead>
+                    <tr><th class="k">경로</th><th>설명</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="k"><code>app/__init__.py</code></td>
+                        <td>앱 초기화, 블루프린트 등록</td>
+                        <td>로깅/DB 연결 준비 등 공통 셋업</td>
+                    </tr>
+                    <tr>
+                        <td class="k"><code>app/cron.py</code></td>
+                        <td>예약 작업 엔트리</td>
+                        <td>통계 집계/알림/정기처리 등</td>
+                    </tr>
+                    <tr>
+                        <td class="k"><code>app/db.py</code></td>
+                        <td>DB 연결/세션 관리 유틸</td>
+                        <td>트랜잭션/쿼리 공통 처리</td>
+                    </tr>
+                    <tr>
+                        <td class="k"><code>app/encryption.py</code></td>
+                        <td>암호화/서명 검증 유틸</td>
+                        <td>민감정보 처리 공통 모듈</td>
+                    </tr>
+                    <tr>
+                        <td class="k"><code>app/models.py</code></td>
+                        <td>도메인 모델(관리자/회원/세션/결제 등)</td>
+                        <td>스키마/ORM 선언 기준</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>2.3 <code>app/api/</code></h3>
+            <table>
+                <thead>
+                    <tr><th class="k">경로</th><th>설명</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="k"><code>app/api/ocr.py</code></td>
+                        <td>이미지 업로드 기반 OCR/비전 분석 API</td>
+                        <td>파일 검증 → 처리 → JSON 응답</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>2.4 <code>app/routes/</code></h3>
+            <table>
+                <thead>
+                    <tr><th class="k">경로</th><th>설명</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="k"><code>app/routes/legal.py</code></td>
+                        <td>약관/개인정보 처리방침 라우트</td>
+                        <td><code>templates/legal</code> 연결</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>2.4.1 <code>app/routes/admin/</code> (관리자 기능)</h4>
+            <table>
+                <thead>
+                    <tr><th class="k">경로</th><th>설명</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="k"><code>auth.py</code></td><td>관리자 인증(로그인/로그아웃/권한)</td><td>세션 기반 인증 흐름</td></tr>
+                    <tr><td class="k"><code>admin.py</code></td><td>관리자 계정 관리/설정 관리</td><td>메인 관리자가 서브 관리자 관리</td></tr>
+                    <tr><td class="k"><code>approve_manager.py</code></td><td>승인/거부 처리(상태 변경)</td><td>알림/로그 기록 연동</td></tr>
+                    <tr><td class="k"><code>chat.py</code></td><td>AI 챗봇 핵심 로직(대화/로그/처리)</td><td>챗봇 기능 중심</td></tr>
+                    <tr><td class="k"><code>training.py</code></td><td>QnA 업로드/관리</td><td>중복 확인/일괄 업로드 지원</td></tr>
+                    <tr><td class="k"><code>doc_training.py</code></td><td>문서 임베딩 업로드/상태</td><td>처리 결과/오류 표시</td></tr>
+                    <tr><td class="k"><code>menus.py</code></td><td>챗봇 버튼/메뉴 데이터 관리</td><td>사용자 뷰/챗봇 버튼과 연동</td></tr>
+                    <tr><td class="k"><code>payments.py</code></td><td>결제/구독 현황</td><td class="muted">※ 영수증 URL 등은 공개 문서에 기재하지 않음</td></tr>
+                    <tr><td class="k"><code>products.py</code></td><td>상품(요금제) 관리</td><td>가격/기간/노출그룹 관리</td></tr>
+                    <tr><td class="k"><code>site_setting_edit.py</code></td><td>사이트(테넌트) 설정</td><td>도메인/브랜딩/위젯 옵션</td></tr>
+                    <tr><td class="k"><code>stats.py</code></td><td>사용량/통계</td><td>기간 필터/대시보드</td></tr>
+                    <tr><td class="k"><code>admin_sessions.py</code></td><td>대화 세션 운영(검색/종료 등)</td><td>수동 종료/만료 처리</td></tr>
+                </tbody>
+            </table>
+
+            <h4>2.4.2 <code>app/routes/member/</code> (사용자 기능)</h4>
+            <table>
+                <thead>
+                    <tr><th class="k">경로</th><th>설명</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="k"><code>member.py</code></td><td>회원 가입/로그인/프로필</td><td>로컬/외부 로그인 연동</td></tr>
+                    <tr><td class="k"><code>boards.py</code></td><td>게시판 기능</td><td>대댓글/첨부 처리</td></tr>
+                    <tr><td class="k"><code>videos.py</code></td><td>영상 게시판</td><td>상세/업로드 등</td></tr>
+                    <tr><td class="k"><code>views_main.py</code></td><td>메인/커스텀 뷰</td><td>메뉴/템플릿 연결</td></tr>
+                </tbody>
+            </table>
+
+            <h3>2.5 <code>app/services/</code></h3>
+            <table>
+                <thead>
+                    <tr><th class="k">경로</th><th>설명</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="k"><code>app/services/openai.py</code></td>
+                        <td>LLM/임베딩 호출 서비스 레이어</td>
+                        <td>비공개 키 사용 + 요청/응답 최소 로그 + 재시도/레이트리밋 고려</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>2.6 <code>app/static/</code></h3>
+            <table>
+                <thead>
+                    <tr><th class="k">경로</th><th>설명</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="k"><code>static/chatbot-embed.js</code></td><td>외부 사이트 임베드 배포 스크립트</td><td>실제 가이드는 아래 “위젯 사용법” 참고</td></tr>
+                    <tr><td class="k"><code>static/chatbot-embed_ori.js</code></td><td>임베드 스크립트 원본(가독성)</td><td>배포본(min/번들)와 별도 보관</td></tr>
+                    <tr><td class="k"><code>static/ocr_upload/</code></td><td>OCR 업로드 임시 저장</td><td>보관 기간/정리 정책 필요</td></tr>
+                    <tr><td class="k"><code>static/uploads_chat_file/</code></td><td>채팅 첨부 저장</td><td class="muted">※ 공개 문서에는 실제 파일/경로를 포함하지 않음</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 위젯 -->
+        <section id="widget" class="card">
+            <h2>3) AI 챗봇 위젯 사용법 (공개용)</h2>
+            <p class="muted">
+                아래 예시는 운영 도메인/실키를 제거한 <b>가이드용 스니펫</b>입니다.
+                실제 적용 시에는 관리자에서 발급된 값(<code>&lt;SITE_ID&gt;</code>, <code>&lt;PUBLIC_API_KEY&gt;</code>)을 사용합니다.
+            </p>
+
+            <h3>3.1 기본 임베드</h3>
+            <div class="code"><pre>&lt;!-- 필수: 위젯 스크립트 임베드 (공개용 예시) --&gt;
+&lt;script&gt;
+  const script = document.createElement("script");
+  script.src = "&lt;SERVICE_ORIGIN&gt;/static/chatbot-embed.js?v=" + Date.now();
+  script.setAttribute("data-site-id", "&lt;SITE_ID&gt;");      // 예: tenant_a
+  script.setAttribute("data-api-key", "&lt;PUBLIC_API_KEY&gt;"); // 공개용/클라이언트키(서버 시크릿키 X)
+  document.body.appendChild(script);
+&lt;/script&gt;</pre></div>
+
+            <h3>3.2 추가 가능 옵션</h3>
+            <div class="code"><pre>&lt;script&gt;
+  const script = document.createElement("script");
+  script.src = "&lt;SERVICE_ORIGIN&gt;/static/chatbot-embed.js?v=" + Date.now();
+  script.setAttribute("data-site-id", "&lt;SITE_ID&gt;");
+  script.setAttribute("data-api-key", "&lt;PUBLIC_API_KEY&gt;");
+
+  // 선택 옵션(공개용 문서: 실제 사용자 식별자는 넣지 않음)
+  script.setAttribute("data-open", "true");          // 처음부터 창 열림
+  script.setAttribute("data-login-uid", "&lt;UID&gt;");    // 사이트 내부 로그인 식별자(가능하면 해시/토큰 권장)
+  script.setAttribute("data-is-paid", "Y");          // Y / N / P (기본 P)
+  script.setAttribute("data-btn-x", "50");           // 버튼 X(px)
+  script.setAttribute("data-btn-y", "120");          // 버튼 Y(px)
+
+  document.body.appendChild(script);
+&lt;/script&gt;</pre></div>
+
+            <table>
+                <thead>
+                    <tr><th class="k">속성</th><th>타입</th><th>설명</th><th>비고</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td class="k"><code>data-site-id</code></td><td>string</td><td>사이트(테넌트) 식별자</td><td>필수</td></tr>
+                    <tr><td class="k"><code>data-api-key</code></td><td>string</td><td>공개용 API 키(클라이언트용)</td><td>필수 · 서버 시크릿키 금지</td></tr>
+                    <tr><td class="k"><code>data-open</code></td><td>string</td><td>초기 로드시 자동 열기</td><td>"true"면 자동 오픈</td></tr>
+                    <tr><td class="k"><code>data-login-uid</code></td><td>string</td><td>로그인 사용자 식별자(선택)</td><td>PII 직접값 대신 해시/토큰 권장</td></tr>
+                    <tr><td class="k"><code>data-is-paid</code></td><td>string</td><td>유료 여부 구분</td><td>Y/N/P</td></tr>
+                    <tr><td class="k"><code>data-btn-x</code></td><td>string</td><td>버튼 가로 오프셋(px)</td><td>숫자 문자열</td></tr>
+                    <tr><td class="k"><code>data-btn-y</code></td><td>string</td><td>버튼 세로 오프셋(px)</td><td>숫자 문자열</td></tr>
+                </tbody>
+            </table>
+
+            <div class="muted" style="margin-top:10px">
+                TIP: 공개 문서에는 <b>실제 서비스 도메인</b> 대신 <code>&lt;SERVICE_ORIGIN&gt;</code>처럼 placeholder를 두고,
+                실제 프로젝트에서는 환경변수/설정에서 주입하는 방식을 권장합니다.
+            </div>
+        </section>
+
+        <!-- 4) 실시간 채팅 위젯 인수인계 -->
+        <section id="widget-realtime" class="card">
+            <h2>4) AI 채팅 위젯 (실시간 위젯) - 공개용 요약</h2>
+
+            <h3>4.1 실행/초기화 흐름</h3>
+            <ol>
+                <li>페이지에 삽입한 스크립트 태그의 속성(<code>data-site-id</code>, <code>data-api-key</code> 등)을 읽습니다.</li>
+                <li>호스트 DIV를 만들고 Shadow DOM을 붙여 사이트 CSS와 분리합니다.</li>
+                <li><code>GET &lt;SERVICE_ORIGIN&gt;/api/chatbot-config?site_id=...</code> 호출로 UI 설정 + <code>chat_token</code>(단기 토큰)을 받습니다.</li>
+                <li>설정에 따라 위젯 UI를 렌더하고, 필요 리소스(Socket.IO/MathJax 등)를 지연 로드합니다.</li>
+                <li>열기 버튼 또는 <code>data-open="true"</code>일 때 소켓 접속 → <code>join</code> → <code>load_history</code> 순으로 기록을 불러옵니다.</li>
+            </ol>
+
+            <h3>4.2 네트워크/스토리지 (마스킹)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="k">구분</th>
+                        <th>값(공개용)</th>
+                        <th>설명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="k">서버 Origin</td>
+                        <td><code>&lt;SERVICE_ORIGIN&gt;</code></td>
+                        <td>HTTP API와 소켓 엔드포인트의 기준 URL</td>
+                    </tr>
+                    <tr>
+                        <td class="k">소켓 경로</td>
+                        <td><code>/socket.io</code></td>
+                        <td>Socket.IO 사용(전송방식 websocket 우선/고정은 구현에 따라)</td>
+                    </tr>
+                    <tr>
+                        <td class="k">설정 API</td>
+                        <td><code>GET /api/chatbot-config</code></td>
+                        <td>UI 설정 + 단기 토큰 제공(소켓 인증용)</td>
+                    </tr>
+                    <tr>
+                        <td class="k">메뉴 API</td>
+                        <td><code>GET /api/chatbot-*-menus</code></td>
+                        <td>인사/입력영역 버튼 목록</td>
+                    </tr>
+                    <tr>
+                        <td class="k">이미지 업로드</td>
+                        <td><code>POST /api/upload_image</code></td>
+                        <td>업로드+분석 요청, 응답의 <code>analysis</code>를 메시지로 출력</td>
+                    </tr>
+                    <tr>
+                        <td class="k">세션 저장</td>
+                        <td><code>localStorage</code></td>
+                        <td>예: <code>chatbot_session_id_{siteId}</code></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.3 보안 메모(공개용)</h3>
+            <ul>
+                <li><b>API Key/토큰</b>: 문서/깃에 절대 하드코딩 금지. 키는 발급/회수 가능해야 하며, 토큰은 단기 만료를 권장.</li>
+                <li><b>data-login-uid</b>: 이메일/전화 등 PII를 직접 넣기보다 <b>서버가 발급한 익명 토큰</b> 또는 해시 사용 권장.</li>
+                <li><b>CORS/도메인 검증</b>: 허용 도메인 + site_id + 키 조합을 서버에서 검증(클라이언트만 믿지 않기).</li>
+                <li><b>업로드 파일</b>: 확장자/컨텐츠타입/용량 제한 + 바이러스 스캔 + 만료/정리 정책 필요.</li>
+            </ul>
+
+            <h3>4.4 시퀀스(요약)</h3>
+            <div class="code">
+<pre>사용자 클릭(or 자동오픈)
+  └─ openChat()
+     ├─ ensureSocket() → connect
+     ├─ emit 'join'({ session_id, site_id, api_key, chat_token, login_uid, is_paid })
+     ├─ emit 'load_history'({ session_id, site_id, api_key, chat_token })
+     └─ on 'history' → 렌더 (없으면 인사말 + 메뉴 로드)</pre>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

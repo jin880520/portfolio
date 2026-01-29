@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>쿠폰 발행</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="css/navbar.css?v=val_251015_001">
+    <link rel="stylesheet" href="test/test.css?v=val_251015_001">
+    <link rel="stylesheet" href="css/admin_store.css?v=val_251015_001">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        .card-head{font-weight:800;margin-bottom:10px;display:flex;gap:8px;align-items:center;}
+        .card-body.section{display:grid;gap:16px;}
+        .grid{display:grid;gap:12px;}
+        .g-2{grid-template-columns:1fr 1fr;}
+        .g-3{grid-template-columns:1fr 1fr 1fr;}
+        .row{display:grid;grid-template-columns:180px 1fr;gap:12px;align-items:center;}
+        .label{font-weight:800;color:#3a4a62;}
+        .pill{display:inline-flex;gap:8px;align-items:center;padding:10px 14px;border:1px solid var(--cb-line);border-radius:999px;background:#fff;}
+        .pill input{accent-color:var(--accent);}
+        .seg-pills{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));}
+        .seg-pills .pill{white-space:nowrap;justify-content:center;}
+        .seg-pills.cols-2{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+        .pill-check{display:flex;gap:8px;align-items:center;}
+        .divider{height:1px;background:var(--cb-line);margin:12px 0;}
+        .footer{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap;}
+        .ok{background:#e9f7ef;color:#1e7e34;border-color:#d6f0de;}
+        .warn{background:#fff6d8;color:#8a6d00;border-color:#ffe9a8;}
+        .danger{background:#ffecec;color:#b02a37;border-color:#ffd6d6;}
+        .cards{display:none;}
+        .toolbar{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;}
+        .grid-outer{display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start;}
+        .summary-fixed{position:sticky;top:16px;height:max-content;}
+        .summary-rows{display:grid;gap:8px;}
+        .sum-line{display:flex;justify-content:space-between;gap:10px;align-items:center;}
+        .sum-total{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:8px;padding:10px 12px;border:1px dashed #e2e8f0;border-radius:12px;background:#fbfdff;font-weight:800;}
+        @media (max-width:900px){
+            .table-wrap{display:none !important;}
+            .cards{display:grid !important;gap:10px;}
+            .card-row{border:1px solid var(--cb-line);border-radius:14px;padding:12px;display:grid;gap:8px;background:#fff;box-shadow:var(--cb-shadow);}
+            .card-row .row-top{display:flex;justify-content:space-between;gap:8px;align-items:center;}
+            .card-row .kv{display:flex;justify-content:space-between;gap:10px;}
+            .card-row .kv .k{color:var(--cb-sub);}
+        }
+        @media (max-width:1100px){.grid-outer{grid-template-columns:1fr;}}
+        @media (max-width:980px){.g-3{grid-template-columns:1fr 1fr;}}
+        @media (max-width:720px){.card-body.section{gap:12px;}.g-2,.g-3{grid-template-columns:1fr;}}
+        @media (max-width:560px){.row{grid-template-columns:1fr;}.seg-pills{display:contents;}}
+    </style>
+</head>
+<body>
+    <aside class="cb-sidemenu"><!--개발시 해당 메뉴는 기존 메뉴를 사용하세요 {% include 'admin/navbar.html' %} -->
+        <div class="cb-sidemenu-inner cb-menu-style">
+            <div class="cb-menu-admin-logo" style="text-align:center;margin-bottom:12px;">
+                <img src="test/testai.png" alt="사이트 로고" style="max-width:150px;object-fit:contain;">
+            </div>
+            <div class="cb-menu-admin-name">테스트 관리자님<br></div>
+            <a><span class="cb-menu-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>로그아웃</a>
+            <div class="cb-menu-toggle-all" style="display:flex;gap:15px;justify-content:flex-end;padding:12px;">
+                <a type="button" onclick="expandAllMenus()" class="toggle_all" id="expandAllBtn_p">＋</a>
+                <a type="button" onclick="collapseAllMenus()" class="toggle_all" id="collapseAllBtn_p">－</a>
+            </div>
+            <div class="cb-menu-group" data-key="menu_general">
+                <div class="cb-menu-group-title" onclick="toggleMenuGroup(this)">스토어 관리</div>
+                <div class="cb-menu-group-body">
+                    <a href="01_01.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-store"></i></span>스토어 설정</a>
+                    <a href="01_02.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-chart-line"></i></span>매출 통계</a>
+                    <a href="01_03.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-tags"></i></span>카테고리 관리</a>
+                    <a href="01_04.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-boxes-stacked"></i></span>상품 관리</a>
+                    <a href="01_05.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>주문/결제 관리</a>
+                    <a href="01_06.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-basket-shopping"></i></span>장바구니 내역</a>
+                    <a href="01_07.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-ticket"></i></span>쿠폰 발행</a>
+                </div>
+            </div>
+            <a>&nbsp;</a>
+        </div>
+    </aside>
+    <div class="wrap">
+        <div class="title">
+            쿠폰 발행
+            <select id="siteIdSelect" name="site_id" onchange="location.href='?site_id='+this.value">
+                <option value="">전체 사이트</option>
+                <option value="acb_allteaching_child">올티칭 유치원</option>
+                <option value="acb_academy_allteaching">올티칭 수학학원</option>
+                <option value="acb_songchon">세무법인 송촌</option>
+                <option value="acb_study_yi">올티칭스터디카페 물푸레점</option>
+                <option value="acb_mokdongmath">목동최상위수학학원</option>
+                <option value="acb_lms1">헬프lms</option>
+                <option value="acb_study_gm">스터디카페 광명점</option>
+                <option value="acb_study">구했어</option>
+                <option value="acb_studycafe">스터디카페</option>
+                <option value="acb_at_test">챗봇 테스트</option>
+                <option value="acb_culture">올티칭 컬쳐</option>
+                <option value="acb_cam">올티칭 캠퍼스</option>
+                <option value="acb_biz">올티칭 캠퍼스</option>
+                <option value="acb_ecce">올티칭 학점은행</option>
+                <option value="acb_ai">올티칭 AI</option>
+                <option value="acb_scce">올티칭 서사평</option>
+            </select>
+        </div>
+        <div class="ad_sub">※ 사이트 선택은 메인 관리자만 선택 가능합니다.</div>
+        <div class="sub">공용 코드/개별지급을 발급하고 기간·수량·조건을 설정합니다.</div>
+        <div class="grid-outer">
+            <div class="col-left">
+                <div class="card">
+                    <div class="card-head"><i class="fa-solid fa-sliders"></i> 발급 설정</div>
+                    <div class="card-body section">
+                        <div class="row">
+                            <div class="label">쿠폰 유형</div>
+                            <div class="seg-pills">
+                                <label class="pill"><input type="radio" name="type" value="amount" checked><span class="txt">정액(원)</span></label>
+                                <label class="pill"><input type="radio" name="type" value="percent"><span class="txt">정율(%)</span></label>
+                                <label class="pill"><input type="radio" name="type" value="ship"><span class="txt">무료배송</span></label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="label">할인 값</div>
+                            <div class="date-line">
+                                <input class="box" type="number" id="discountValue" placeholder="예: 3000(원) 또는 10(%)" min="0" inputmode="numeric">
+                                <span class="hint" id="valueHint">정액: 원 단위(예 3000)</span>
+                            </div>
+                        </div>
+                        <div class="row" id="percentCapRow" style="display:none">
+                            <div class="label">정율 최대할인</div>
+                            <div class="date-line">
+                                <input class="box" type="number" id="percentCap" placeholder="예: 10000" min="0" inputmode="numeric">
+                                <span class="hint">정율 쿠폰 1회 최대 할인(원)</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="label">대상 사이트</div>
+                            <div>
+                                <select class="box" id="siteId">
+                                    <option value="ALL">전체 사이트</option>
+                                    <option value="acb_allteaching_child">올티칭 유치원</option>
+                                    <option value="acb_academy_allteaching">올티칭 수학학원</option>
+                                    <option value="acb_songchon">세무법인 송촌</option>
+                                    <option value="acb_study_yi">올티칭스터디카페 물푸레점</option>
+                                    <option value="acb_mokdongmath">목동최상위수학학원</option>
+                                    <option value="acb_lms1">헬프lms</option>
+                                    <option value="acb_study_gm">스터디카페 광명점</option>
+                                    <option value="acb_study">구했어</option>
+                                    <option value="acb_studycafe">스터디카페</option>
+                                    <option value="acb_at_test">챗봇 테스트</option>
+                                    <option value="acb_culture">올티칭 컬쳐</option>
+                                    <option value="acb_cam">올티칭 캠퍼스</option>
+                                    <option value="acb_biz">올티칭 캠퍼스</option>
+                                    <option value="acb_ecce">올티칭 학점은행</option>
+                                    <option value="acb_ai">올티칭 AI</option>
+                                    <option value="acb_scce">올티칭 서사평</option>
+                                </select>
+                                <div class="hint">특정 사이트만 사용 가능하도록 제한 가능</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="label">유효기간</div>
+                            <div class="date-line">
+                                <input class="box" type="date" id="fromDate"><span>~</span><input class="box" type="date" id="toDate">
+                                <span class="hint" style="white-space:nowrap">미입력 시 즉시 발급/무기한</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="label">최소 주문금액</div>
+                            <div class="date-line">
+                                <input class="box" type="number" id="minAmount" placeholder="예: 30000" min="0" inputmode="numeric">
+                                <span class="hint">이상 주문 시 사용 가능(선택)</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="label">중복 사용</div>
+                            <div class="pill-check" style="max-width:360px">
+                                <input type="checkbox" id="stackable">
+                                <span class="txt">다른 쿠폰과 중복 허용</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top:16px">
+                    <div class="card-head"><i class="fa-solid fa-clipboard-list"></i> 발행 방식 / 대상</div>
+                    <div class="card-body section">
+                        <div class="row">
+                            <div class="label">발행 형태</div>
+                            <div class="seg-pills cols-2">
+                                <label class="pill"><input type="radio" name="issue" value="code" checked><span class="txt">쿠폰코드(공용/지정)</span></label>
+                                <label class="pill"><input type="radio" name="issue" value="direct"><span class="txt">개별지급(코드 없음)</span></label>
+                            </div>
+                        </div>
+                        <div class="row" id="codeRow">
+                            <div class="label">쿠폰코드</div>
+                            <div class="date-line">
+                                <input class="box" type="text" id="couponCode" placeholder="예: ALL-10P-2025" style="min-width:220px" maxlength="40" aria-label="쿠폰코드">
+                                <button type="button" class="btn small" id="btnGen"><i class="fa-solid fa-wand-magic-sparkles"></i> 생성</button>
+                                <span class="hint">영문/숫자/대시 권장</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="label">발행 수량</div>
+                            <div class="date-line">
+                                <input class="box" type="number" id="quota" placeholder="예: 100" min="1" inputmode="numeric">
+                                <span class="hint">코드형: 총 사용 횟수 · 개별지급: 생성 건수</span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="label">회원 지정</div>
+                            <div>
+                                <textarea class="box" id="userIds" placeholder="특정 회원에게만 발급 시, 회원ID를 콤마(,) 또는 줄바꿈으로 구분 입력&#10;예) kim01, lee22, park77"></textarea>
+                                <div class="hint">비우면 공용 코드(누구나 사용) 또는 개별지급 미지정</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top:16px">
+                    <div class="card-head"><i class="fa-regular fa-rectangle-list"></i> 발행 내역 미리보기 <span class="badge" id="resultInfo" style="margin-left:8px">0건</span></div>
+                    <div class="card-body">
+                        <div class="table-wrap">
+                            <table id="tbl" aria-label="쿠폰 발행 미리보기">
+                                <thead>
+                                    <tr>
+                                        <th style="width:130px">사이트</th>
+                                        <th style="width:140px">회원ID</th>
+                                        <th>쿠폰코드</th>
+                                        <th style="width:100px">유형/값</th>
+                                        <th style="width:220px">기간</th>
+                                        <th style="width:110px">최소금액</th>
+                                        <th style="width:80px">중복</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <div class="cards" id="cards" aria-live="polite"></div>
+                        <div class="toolbar">
+                            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                                <button class="btn small" id="btnPreview"><i class="fa-regular fa-eye"></i> 미리보기</button>
+                                <button class="btn small" id="btnCsv"><i class="fa-solid fa-file-arrow-down"></i> CSV</button>
+                                <button class="btn primary small" id="btnIssue"><i class="fa-solid fa-ticket"></i> 발행</button>
+                            </div>
+                            <div class="pager">
+                                <button class="btn small" id="prev" aria-label="이전 페이지">이전</button>
+                                <span class="muted" id="pageInfo">1 / 1</span>
+                                <button class="btn small" id="next" aria-label="다음 페이지">다음</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="summary-fixed">
+                <div class="card" role="complementary" aria-label="발급 요약">
+                    <div class="card-head"><i class="fa-solid fa-clipboard-check"></i> 발급 요약</div>
+                    <div class="card-body">
+                        <div class="summary-rows">
+                            <div class="sum-line"><span class="muted">쿠폰 유형</span><b id="sType">정액(원)</b></div>
+                            <div class="sum-line"><span class="muted">할인 값</span><b id="sValue">-</b></div>
+                            <div class="sum-line"><span class="muted">대상 사이트</span><b id="sSite">전체 사이트</b></div>
+                            <div class="sum-line"><span class="muted">유효기간</span><b id="sPeriod">즉시 ~ 무기한</b></div>
+                            <div class="sum-line"><span class="muted">최소 주문금액</span><b id="sMin">-</b></div>
+                            <div class="sum-line"><span class="muted">중복 사용</span><b id="sStack">불가</b></div>
+                            <div class="sum-line"><span class="muted">발행 형태</span><b id="sIssue">쿠폰코드</b></div>
+                            <div class="sum-line"><span class="muted">수량/대상</span><b id="sQuota">-</b></div>
+                            <div class="sum-total"><span>예상 발행</span><span id="sCount">0건</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function toggleMenuGroup(el) {
+            const group = el.closest('.cb-menu-group');
+            const key = group.dataset.key;
+            const isCollapsed = group.classList.toggle('collapsed');
+            const states = JSON.parse(localStorage.getItem('cb_menu_states') || '{}');
+            states[key] = !isCollapsed;
+            localStorage.setItem('cb_menu_states', JSON.stringify(states));
+        }
+
+        function expandAllMenus() {
+            const states = {};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group => {
+                group.classList.remove('collapsed');
+                states[group.getAttribute('data-key')] = true;
+            });
+            localStorage.setItem('cb_menu_states', JSON.stringify(states));
+        }
+
+        function collapseAllMenus() {
+            const states = {};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group => {
+                group.classList.add('collapsed');
+                states[group.getAttribute('data-key')] = false;
+            });
+            localStorage.setItem('cb_menu_states', JSON.stringify(states));
+        }
+
+        const $ = s => document.querySelector(s);
+        const fmtKRW = n => (n > 0 ? n.toLocaleString('ko-KR') + '원' : '-');
+
+        const elTBody = document.querySelector('#tbl tbody');
+        const elCards = document.getElementById('cards');
+        const elResult = document.getElementById('resultInfo');
+        const elPageInfo = document.getElementById('pageInfo');
+
+        const PAGE = 10;
+        let page = 1;
+        let previewRows = [];
+
+        function getType() {
+            return document.querySelector('input[name="type"]:checked').value;
+        }
+
+        function getIssue() {
+            return document.querySelector('input[name="issue"]:checked').value;
+        }
+
+        function toggleTypeUI() {
+            const t = getType();
+            $('#percentCapRow').style.display = t === 'percent' ? 'grid' : 'none';
+            $('#valueHint').textContent =
+                t === 'amount'
+                    ? '정액: 원 단위(예 3000)'
+                    : t === 'percent'
+                    ? '정율: 1~100 사이 정수(%)'
+                    : '무료배송: 값 입력 불필요(0 권장)';
+            updateSummary();
+        }
+
+        function toggleIssueUI() {
+            $('#codeRow').style.display = getIssue() === 'code' ? 'grid' : 'none';
+            updateSummary();
+        }
+
+        document.querySelectorAll('input[name="type"]').forEach(r =>
+            r.addEventListener('change', toggleTypeUI)
+        );
+
+        document.querySelectorAll('input[name="issue"]').forEach(r =>
+            r.addEventListener('change', toggleIssueUI)
+        );
+
+        [
+            '#discountValue',
+            '#percentCap',
+            '#siteId',
+            '#fromDate',
+            '#toDate',
+            '#minAmount',
+            '#stackable',
+            '#couponCode',
+            '#quota',
+            '#userIds'
+        ].forEach(sel => {
+            const el = $(sel);
+            if (el) el.addEventListener('input', updateSummary);
+        });
+
+        (function initDates() {
+            const now = new Date();
+            const from = now.toISOString().slice(0, 10);
+            const d = new Date(now);
+            d.setDate(d.getDate() + 30);
+            const to = d.toISOString().slice(0, 10);
+            $('#fromDate').value = from;
+            $('#toDate').value = to;
+            updateSummary();
+        })();
+
+        $('#btnGen').onclick = () => {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let s = '';
+            for (let i = 0; i < 12; i++) s += chars[Math.floor(Math.random() * chars.length)];
+            $('#couponCode').value = s.match(/.{1,4}/g).join('-');
+            updateSummary();
+        };
+
+        function collect() {
+            const type = getType();
+            const issue = getIssue();
+            const site = $('#siteId').value;
+            const siteName = $('#siteId').selectedOptions[0].textContent;
+            const val = parseInt($('#discountValue').value || '0', 10);
+            const cap = parseInt($('#percentCap').value || '0', 10);
+            const minAmount = parseInt($('#minAmount').value || '0', 10);
+            const stackable = $('#stackable').checked;
+            const from = $('#fromDate').value;
+            const to = $('#toDate').value;
+            const quota = parseInt($('#quota').value || '0', 10);
+            const code = ($('#couponCode').value || '').trim();
+            const users = ($('#userIds').value || '')
+                .split(/[\n,]+/)
+                .map(s => s.trim())
+                .filter(Boolean);
+
+            if (type === 'amount' && (!Number.isFinite(val) || val <= 0)) {
+                alert('정액 할인 값을 입력해 주세요.');
+                return null;
+            }
+            if (type === 'percent') {
+                if (!Number.isFinite(val) || val <= 0 || val > 100) {
+                    alert('정율 할인은 1~100 사이여야 합니다.');
+                    return null;
+                }
+                if (!Number.isFinite(cap) || cap < 0) {
+                    alert('정율 최대할인을 0 이상으로 입력해 주세요.');
+                    return null;
+                }
+            }
+            if (!Number.isFinite(quota) || quota <= 0) {
+                alert('발행 수량을 1 이상으로 입력해 주세요.');
+                return null;
+            }
+            if (issue === 'code' && code.length < 4) {
+                alert('쿠폰코드를 4자 이상 입력하거나 “생성”을 클릭하세요.');
+                return null;
+            }
+            if (from && to && new Date(from) > new Date(to)) {
+                alert('유효기간 시작/종료를 확인하세요.');
+                return null;
+            }
+
+            return {
+                type,
+                issue,
+                site,
+                siteName,
+                val,
+                cap,
+                minAmount,
+                stackable,
+                from,
+                to,
+                quota,
+                code,
+                users
+            };
+        }
+
+        function buildPreviewRows(cfg) {
+            const rows = [];
+            const dateStr =
+                (cfg.from || '-') + (cfg.to ? ' ~ ' + cfg.to : cfg.from ? ' ~ -' : '') || '-';
+            const valueStr =
+                cfg.type === 'amount'
+                    ? cfg.val + '원'
+                    : cfg.type === 'percent'
+                    ? cfg.val + '%' + (cfg.cap ? ` (최대 ${cfg.cap}원)` : '')
+                    : '무료배송';
+
+            if (cfg.issue === 'direct') {
+                const target = cfg.users.length ? cfg.users : [];
+                if (!target.length) {
+                    alert('개별지급은 “회원 지정”이 필요합니다.');
+                    return [];
+                }
+                target.slice(0, cfg.quota).forEach(uid => {
+                    rows.push({
+                        site: cfg.siteName,
+                        userId: uid,
+                        code: '-',
+                        value: valueStr,
+                        period: dateStr,
+                        min: cfg.minAmount,
+                        stack: cfg.stackable ? 'Y' : 'N'
+                    });
+                });
+                return rows;
+            }
+
+            if (cfg.users.length) {
+                cfg.users.forEach(uid => {
+                    rows.push({
+                        site: cfg.siteName,
+                        userId: uid,
+                        code: cfg.code,
+                        value: valueStr,
+                        period: dateStr,
+                        min: cfg.minAmount,
+                        stack: cfg.stackable ? 'Y' : 'N'
+                    });
+                });
+            } else {
+                rows.push({
+                    site: cfg.siteName,
+                    userId: '(공용)',
+                    code: cfg.code + '  ×' + cfg.quota,
+                    value: valueStr,
+                    period: dateStr,
+                    min: cfg.minAmount,
+                    stack: cfg.stackable ? 'Y' : 'N'
+                });
+            }
+
+            return rows;
+        }
+
+        function render() {
+            const totalPages = Math.max(1, Math.ceil(previewRows.length / PAGE));
+            page = Math.min(page, totalPages);
+            const start = (page - 1) * PAGE;
+            const slice = previewRows.slice(start, start + PAGE);
+
+            elTBody.innerHTML = '';
+            slice.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge">${r.site}</span></td>
+                    <td><b>${r.userId}</b></td>
+                    <td>${r.code}</td>
+                    <td>${r.value}</td>
+                    <td>${r.period || '-'}</td>
+                    <td>${r.min ? fmtKRW(r.min) : '-'}</td>
+                    <td>${r.stack === 'Y' ? '<span class="badge">가능</span>' : '<span class="badge">불가</span>'}</td>
+                `;
+                elTBody.appendChild(tr);
+            });
+
+            elCards.innerHTML = '';
+            slice.forEach(r => {
+                const c = document.createElement('div');
+                c.className = 'card-row';
+                c.innerHTML = `
+                    <div class="row-top">
+                        <span class="badge">${r.site}</span>
+                        <span class="muted">${r.period || '-'}</span>
+                    </div>
+                    <div><b>${r.userId}</b> · <span class="muted">${r.stack === 'Y' ? '중복가능' : '중복불가'}</span></div>
+                    <div>코드: <span>${r.code}</span></div>
+                    <div class="kv"><span class="k">유형/값</span><span>${r.value}</span></div>
+                    <div class="kv"><span class="k">최소금액</span><span>${r.min ? fmtKRW(r.min) : '-'}</span></div>
+                `;
+                elCards.appendChild(c);
+            });
+
+            elResult.textContent = `${previewRows.length}건`;
+            elPageInfo.textContent = `${page} / ${totalPages}`;
+            $('#prev').disabled = page <= 1;
+            $('#next').disabled = page >= totalPages;
+            $('#sCount').textContent = `${previewRows.length}건`;
+        }
+
+        $('#prev').onclick = () => {
+            if (page > 1) {
+                page--;
+                render();
+            }
+        };
+
+        $('#next').onclick = () => {
+            page++;
+            render();
+        };
+
+        $('#btnPreview').onclick = () => {
+            const cfg = collect();
+            if (!cfg) return;
+            previewRows = buildPreviewRows(cfg);
+            page = 1;
+            render();
+        };
+
+        $('#btnCsv').onclick = () => {
+            if (previewRows.length === 0) {
+                alert('먼저 “미리보기”를 생성해 주세요.');
+                return;
+            }
+            const rows = [['사이트', '회원ID', '쿠폰코드', '유형/값', '기간', '최소금액', '중복']];
+            previewRows.forEach(r =>
+                rows.push([r.site, r.userId, r.code, r.value, r.period, r.min || 0, r.stack])
+            );
+            const csv = rows
+                .map(r => r.map(x => String(x).replace(/"/g, '""')).map(x => `"${x}"`).join(','))
+                .join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'coupon_preview.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        };
+
+        $('#btnIssue').onclick = e => {
+            e.preventDefault();
+            const cfg = collect();
+            if (!cfg) return;
+            if (previewRows.length === 0) {
+                previewRows = buildPreviewRows(cfg);
+            }
+            if (previewRows.length === 0) return;
+            alert('쿠폰 발행이 요청되었습니다. (데모)\n발행 건수: ' + previewRows.length);
+        };
+
+        function updateSummary() {
+            const t = getType();
+            const issue = getIssue();
+
+            $('#sType').textContent = t === 'amount' ? '정액(원)' : t === 'percent' ? '정율(%)' : '무료배송';
+
+            const val = parseInt($('#discountValue').value || '0', 10);
+            const cap = parseInt($('#percentCap').value || '0', 10);
+            $('#sValue').textContent =
+                t === 'amount'
+                    ? val ? fmtKRW(val) : '-'
+                    : t === 'percent'
+                    ? (val ? `${val}%` : '-') + (cap ? ` (최대 ${fmtKRW(cap)})` : '')
+                    : '배송비 전액';
+
+            $('#sSite').textContent = $('#siteId').selectedOptions[0].textContent;
+
+            const f = $('#fromDate').value;
+            const to = $('#toDate').value;
+            $('#sPeriod').textContent = (f || '즉시') + ' ~ ' + (to || '무기한');
+
+            const minA = parseInt($('#minAmount').value || '0', 10);
+            $('#sMin').textContent = minA ? fmtKRW(minA) : '-';
+
+            $('#sStack').textContent = $('#stackable').checked ? '가능' : '불가';
+            $('#sIssue').textContent = issue === 'code' ? '쿠폰코드' : '개별지급';
+
+            const q = parseInt($('#quota').value || '0', 10);
+            const users = ($('#userIds').value || '')
+                .split(/[\n,]+/)
+                .map(s => s.trim())
+                .filter(Boolean);
+
+            $('#sQuota').textContent =
+                issue === 'code'
+                    ? users.length
+                        ? `코드 + 지정 ${users.length}명 · 총 ${q || 0}회`
+                        : `공용 코드 · 총 ${q || 0}회`
+                    : users.length
+                    ? `개별 ${Math.min(q || 0, users.length)}건 / 대상 ${users.length}명`
+                    : '대상 미지정';
+        }
+
+        toggleTypeUI();
+        toggleIssueUI();
+        updateSummary();
+    </script>
+</body>
+</html>

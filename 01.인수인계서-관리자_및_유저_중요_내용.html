@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>인수인계서 - 관리자 시스템 (포트폴리오용 익명화 버전)</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        :root{
+          --cb-text:#223046;--cb-sub:#6c7a89;--cb-line:#e8edf3;--cb-card:#ffffff;
+          --cb-bg:#f6f8fb;--accent:#2b63f1;--ok:#16a34a;--warn:#f59e0b;
+          --danger:#b91c1c;--shadow:0 8px 24px rgba(51,65,85,.08);--round:16px;
+        }
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--cb-bg);color:var(--cb-text);
+          font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Helvetica,Arial}
+        .wrap{max-width:1200px;margin:36px auto;padding:0 16px 80px}
+        .title{font-size:22px;font-weight:900;margin-bottom:4px}
+        .sub{color:var(--cb-sub);margin-bottom:20px}
+        .card{background:var(--cb-card);border:1px solid var(--cb-line);border-radius:var(--round);
+          box-shadow:var(--shadow);padding:18px;margin-bottom:20px}
+        .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px}
+        .ttl{font-weight:900}
+        .badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;
+          padding:4px 10px;font-size:12px;font-weight:800;border:1px solid #e3e9ff;
+          background:#eef3ff;color:#2b63f1}
+        .badge.ok{border-color:#d1fae5;background:#ecfdf5;color:#065f46}
+        .badge.warn{border-color:#fde68a;background:#fffbeb;color:#92400e}
+        .img-wrap{text-align:center;margin:16px 0}
+        .img-wrap img{max-width:100%;border-radius:12px;box-shadow:var(--shadow)}
+        .note{background:#f8fafc;border:1px solid var(--cb-line);
+          border-radius:12px;padding:10px;font-size:13px;color:#475569}
+        ul{margin:8px 0 8px 18px;padding:0}
+        .fold>summary{cursor:pointer;font-weight:900;padding:10px 12px;
+          background:#f8fbff;border:1px solid var(--cb-line);border-radius:12px}
+        .fold[open]>summary{background:#eef3ff;border-color:#dfe7ff}
+        .fold-body{padding:10px 14px}
+        code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,Monaco,monospace}
+        .meta-box{
+          display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+          padding:10px 12px;border:1px dashed #cbd5e1;border-radius:12px;background:#fff
+        }
+        .pill{
+          display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+          border:1px solid var(--cb-line);background:#fff;color:#334155;font-size:12px;font-weight:800
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="title"><i class="fa-solid fa-book"></i> 관리자 · 사용자 시스템 인수인계서 <span class="badge warn">포트폴리오용 익명화</span></div>
+        <div class="sub">메인 관리자 / 서브 관리자 / 사용자(엔드유저) 시스템</div>
+
+        <!-- 공개용 고지 -->
+        <section class="card">
+            <div class="head">
+                <div class="ttl"><i class="fa-solid fa-shield-halved"></i> 공개용 고지</div>
+                <div class="badge ok">PII/Secret 제거</div>
+            </div>
+            <div class="meta-box">
+                <span class="pill"><i class="fa-solid fa-user-secret"></i> 실계정·비밀번호 제거</span>
+                <span class="pill"><i class="fa-solid fa-key"></i> 키/토큰/인증값 비공개</span>
+                <span class="pill"><i class="fa-solid fa-globe"></i> 실도메인/IP 마스킹</span>
+                <span class="pill"><i class="fa-solid fa-folder-open"></i> 서버 경로 일반화</span>
+            </div>
+            <p class="note" style="margin-top:12px">
+                본 문서는 포트폴리오 공개를 위해 실제 서비스의 민감정보(계정, 비밀번호, 키/토큰, 실도메인/IP, 서버 경로, 고객 고유명 등)를
+                <b>익명화/일반화</b>했습니다. 기능 흐름과 운영 관점의 설명만 남기고, 보안에 영향을 줄 수 있는 세부는 제거했습니다.
+            </p>
+        </section>
+
+        <!-- 참고사항 및 안내 -->
+        <section class="card">
+            <div class="head">
+                <div class="ttl"><i class="fa-solid fa-info-circle"></i> 참고사항 및 안내</div>
+            </div>
+            <details class="fold" open>
+                <summary><i class="fa-solid fa-circle-info"></i> 설명</summary>
+                <div class="fold-body">
+                    <p>
+                        본 인수인계서는 주요 기능과 전체 흐름 중심으로 구성되어 있으며<br>
+                        단순 입력 위주의 페이지나 구조가 단순한 화면, 또는 화면 내 설명이 충분한 항목은 생략했습니다.
+                    </p>
+
+                    <p><b>테스트/데모 데이터</b>는 공개용 샘플 계정으로 대체합니다.</p>
+                    <ul>
+                        <li>ID: <code>demo_owner</code> / PW: <code>********</code></li>
+                        <li>ID: <code>demo_admin</code> / PW: <code>********</code></li>
+                        <li>ID: <code>demo_site_a</code> / PW: <code>********</code></li>
+                    </ul>
+                    <div class="note">
+                        ※ 실제 운영 환경에서는 비밀번호를 문서에 남기지 않고, 별도 비밀관리(Password manager / Vault 등)를 사용합니다.
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <!-- 메인 관리자 - 승인 -->
+        <section class="card">
+            <div class="head">
+                <div class="ttl"><i class="fa-solid fa-user-tie"></i> 메인 관리자 - 승인</div>
+            </div>
+            <div class="img-wrap">
+                <img src="img/001.png" alt="메인 관리자 - 관리자 회원 관리(예시)">
+            </div>
+            <details class="fold" open>
+                <summary><i class="fa-solid fa-circle-info"></i> 설명</summary>
+                <div class="fold-body">
+                    <p>메인 관리자에서 <b>관리자 회원 관리</b> 페이지에서 가입 후 “심사중”인 관리자 계정을 승인/배정합니다.</p>
+
+                    <p>
+                        승인 시 “유료 활성 상태”와 유사한 권한이 부여되며,
+                        운영 정책에 따라 <b>만료일(ms_expire)</b>이 무제한/기간제 형태로 관리될 수 있습니다.
+                    </p>
+
+                    <p>승인(또는 결제 완료) 시 아래와 같은 데이터가 생성됩니다.</p>
+
+                    <div class="note">
+                        <b>(예시) 워크스페이스/사이트 매핑 테이블</b><br>
+                        <code>manager_workspaces</code> (구현별 명칭은 상이할 수 있음)
+                    </div>
+
+                    <p>학습 데이터용 per-site 테이블이 생성될 수 있습니다(패턴만 공개).</p>
+                    <div class="note">
+                        <code>training_qna_{site}</code><br>
+                        <code>training_docs_{site}</code><br>
+                        <code>site_menus_{site}</code><br>
+                        예시: <code>training_qna_site_a</code>
+                    </div>
+
+                    <p>정적 리소스(이미지/CSS)는 사이트/관리자 단위로 자동 생성될 수 있습니다(경로는 일반화).</p>
+                    <ul>
+                        <li><code>&lt;APP_STATIC_ROOT&gt;/img/&lt;admin_or_site_key&gt;/</code> (예: 로고/배경 등)</li>
+                        <li><code>&lt;APP_STATIC_ROOT&gt;/css/main/&lt;admin_or_site_key&gt;/</code> (예: list/main/sub 스타일)</li>
+                    </ul>
+
+                    <div class="note">
+                        ※ 실제 경로(<code>/opt/...</code>) 및 파일명 규칙은 공개용에서 마스킹했습니다.
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <!-- 메인 관리자 - 사이트 배정 -->
+        <section class="card">
+            <div class="head">
+                <div class="ttl"><i class="fa-solid fa-user-tie"></i> 메인 관리자 - 사이트 배정</div>
+            </div>
+            <div class="img-wrap">
+                <img src="img/002.png" alt="메인 관리자 - 사이트 배정(예시)">
+            </div>
+            <details class="fold" open>
+                <summary><i class="fa-solid fa-circle-info"></i> 설명</summary>
+                <div class="fold-body">
+                    <p>
+                        사이트 배정 시 기존 승인된 상위 관리자(서브-상위)의 하위 관리자(서브-하위)로 등록합니다.
+                    </p>
+                    <p>
+                        승인된 사이트 목록에서 선택 후 <b>사이트 배정</b>을 실행하면 해당 사이트에 대한 운영 권한이 부여됩니다.
+                    </p>
+                    <div class="note">
+                        권한 구조 예시: <code>Owner(메인)</code> → <code>Admin(서브-상위)</code> → <code>Admin(서브-하위)</code>
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <!-- 관리자별 사이트 커스텀 -->
+        <section class="card">
+            <div class="head">
+                <div class="ttl"><i class="fa-solid fa-paintbrush"></i> 사이트(관리자)별 커스텀</div>
+                <div class="badge">커스텀</div>
+            </div>
+            <details class="fold" open>
+                <summary><i class="fa-solid fa-circle-info"></i> 설명</summary>
+                <div class="fold-body">
+                    <p><b>사이트 커스텀</b> 시 기본 템플릿을 복사하여 사이트 전용 스타일로 확장합니다.</p>
+
+                    <p><b>기본 CSS 템플릿(예시)</b></p>
+                    <ul>
+                        <li><code>&lt;APP_STATIC_ROOT&gt;/css/main/template_default</code></li>
+                        <li><code>&lt;APP_STATIC_ROOT&gt;/css/main/template_variant_a</code></li>
+                    </ul>
+
+                    <p>복사 시 아래 경로에 <b>&lt;site_key&gt;</b> 전용 폴더를 생성하고 파일을 복사/수정합니다.</p>
+                    <ul>
+                        <li><code>&lt;APP_STATIC_ROOT&gt;/css/main/&lt;site_key&gt;/</code></li>
+                        <li><code>&lt;site_key&gt;_list.css</code></li>
+                        <li><code>&lt;site_key&gt;_main.css</code></li>
+                        <li><code>&lt;site_key&gt;_sub.css</code></li>
+                    </ul>
+
+                    <p>배경 영상 파일 또한 사이트 단위로 관리될 수 있습니다.</p>
+                    <ul>
+                        <li><code>&lt;APP_STATIC_ROOT&gt;/img/&lt;site_key&gt;/</code></li>
+                        <li><code>&lt;site_key&gt;_bg.mp4</code></li>
+                        <li><code>&lt;site_key&gt;_m_bg.mp4</code></li>
+                    </ul>
+
+                    <div class="note">
+                        ※ 실제 운영 환경에서는 파일 업로드/배포 파이프라인(CDN, 빌드/릴리즈 등)과 연동될 수 있습니다.
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <!-- 서브 관리자 - 메뉴 및 페이지 추가 -->
+        <section class="card">
+            <div class="head">
+                <div class="ttl"><i class="fa-solid fa-bars"></i> 서브 관리자 - 사이트 메뉴 및 페이지 추가</div>
+            </div>
+            <div class="img-wrap">
+                <img src="img/003.png" alt="서브 관리자 - 메뉴 설정(예시)">
+            </div>
+            <div class="img-wrap">
+                <img src="img/004.png" alt="서브 관리자 - 메뉴 추가(예시)">
+            </div>
+            <details class="fold" open>
+                <summary><i class="fa-solid fa-circle-info"></i> 설명</summary>
+                <div class="fold-body">
+                    <p>
+                        서브 관리자는 <b>내사이트 관리 → 메뉴 설정</b>에서 <b>메뉴 추가</b>를 통해 사이트 메뉴 및 페이지를 구성할 수 있습니다.
+                    </p>
+                    <ul>
+                        <li>메뉴명, 아이콘, 정렬 순서를 입력</li>
+                        <li><b>PC / 모바일</b> 선택 시 선택한 환경에서만 노출</li>
+                    </ul>
+
+                    <p style="font-weight:900;">페이지 기능 타입(예시)</p>
+                    <ul>
+                        <li><b>게시판</b> - 대댓글 지원 일반 게시판</li>
+                        <li><b>영상</b> - 영상 게시판</li>
+                        <li><b>챗봇</b> - 내부 채팅 페이지</li>
+                        <li><b>통화연결</b> - 모바일 실제 통화(PC는 안내)</li>
+                        <li><b>링크</b> - 외부 링크 새 탭 연결</li>
+                        <li><b>뷰</b> - 관리자 입력 HTML을 렌더링하는 뷰 페이지</li>
+                    </ul>
+
+                    <p>
+                        추가한 메뉴는 사용자 사이트 메뉴 및 관리자용 “챗봇 사이트” 메뉴 등에 자동 반영될 수 있습니다.
+                    </p>
+                </div>
+            </details>
+            <div class="img-wrap">
+                <img src="img/006.png" alt="서브 관리자 - 메뉴 출력 예시">
+            </div>
+        </section>
+
+        <!-- 서브 관리자 - 뷰 페이지 추가 시 -->
+        <section class="card">
+            <div class="head">
+                <div class="ttl"><i class="fa-solid fa-file-code"></i> 서브 관리자 - 뷰 페이지 추가</div>
+            </div>
+
+            <div class="img-wrap">
+                <img src="img/005.png" alt="서브 관리자 - 뷰 페이지 추가(예시)">
+            </div>
+
+            <details class="fold" open>
+                <summary><i class="fa-solid fa-circle-info"></i> 설명</summary>
+                <div class="fold-body">
+                    <p>
+                        뷰 페이지 추가 시 <b>페이지 기능 타입</b>을 <b>“뷰(View)”</b>로 선택하고,
+                        <b>뷰/에디터 콘텐츠</b>에 해당 페이지에서 출력할 HTML 코드를 입력합니다.
+                    </p>
+
+                    <p class="note">
+                        공개용 예시에서는 실제 고객사명/이미지 경로/실명을 제거하고
+                        <code>&lt;site_key&gt;</code>, <code>&lt;ASSET_URL&gt;</code> 같은 placeholder로 대체했습니다.
+                    </p>
+
+                    <div class="note" style="overflow-x:auto;">
+<pre style="white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.45;">
+&lt;!-- View Page Sample (Redacted) --&gt;
+&lt;style&gt;
+  :root{
+    --bg:#011026;
+    --bg-2:#011026;
+    --text:#fff;
+    --muted:#cbd5e1;
+    --accent:#5784F9;
+    --max:980px;
+  }
+  *{box-sizing:border-box;margin:0;border:none}
+  .sections .main_con{background:var(--bg);color:var(--text);line-height:1.7}
+  img{max-width:100%;display:block}
+  .container{width:100%;max-width:var(--max);margin:0 auto;padding:0}
+  .hero{position:relative;min-height:66vh;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+  .hero::before{
+    content:"";position:absolute;inset:0;
+    background:url('&lt;ASSET_URL&gt;/img/&lt;site_key&gt;/hero.png') center/cover no-repeat;
+    filter:brightness(.55)
+  }
+  .hero-inner{position:relative;z-index:1;padding:0 20px}
+  .hero h1{font-size:clamp(26px,6vw,56px);line-height:1.25;margin:0 0 12px;font-weight:900;color:#fff}
+  .hero p{margin:0 auto;max-width:760px;color:#fff;font-weight:400;font-size:clamp(14px,3.5vw,18px)}
+  .section{padding:72px 0}
+  .alt{background:var(--bg-2)}
+  .about{display:grid;grid-template-columns:1fr;gap:34px;align-items:center}
+  .about .photo{width:100%;max-width:320px;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 20px 40px rgba(0,0,0,.35);margin:0 auto}
+  @media(min-width:980px){.about{grid-template-columns:320px 1fr}}
+&lt;/style&gt;
+
+&lt;section class="hero"&gt;
+  &lt;div class="hero-inner container"&gt;
+    &lt;h1&gt;브랜드 슬로건(예시)&lt;br/&gt;한 줄 추가(예시)&lt;/h1&gt;
+    &lt;p&gt;서비스/회사 소개 문구(예시).&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;section class="section alt"&gt;
+  &lt;div class="container about"&gt;
+    &lt;div class="photo"&gt;
+      &lt;img src="&lt;ASSET_URL&gt;/img/&lt;site_key&gt;/profile.png" alt="프로필 이미지(예시)"&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;h2&gt;소개 헤드라인(예시)&lt;/h2&gt;
+      &lt;p&gt;소개 본문(예시).&lt;/p&gt;
+      &lt;div style="margin-top:12px;color:#fff;font-weight:600"&gt;
+        담당자명/직함(마스킹)&lt;br&gt;&lt;span style="font-size:14px;font-weight:300;color:#cbd5e1"&gt;직책(예시)&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+</pre>
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <!-- 서브 관리자 - 내 챗봇 관리 - 챗봇 설정 중요내용 -->
+        <section class="card">
+            <div class="head">
+                <div class="ttl"><i class="fa-solid fa-robot"></i> 서브 관리자 - 내 챗봇 관리 - 챗봇 설정(핵심)</div>
+            </div>
+
+            <details class="fold" open>
+                <summary><i class="fa-solid fa-circle-info"></i> 설명</summary>
+                <div class="fold-body">
+                    <p>서브 관리자는 <b>내 챗봇 관리 → 챗봇 설정</b>에서 워크스페이스(사이트)별 주요 환경을 관리합니다.</p>
+
+                    <h4 style="font-weight:900;margin-top:12px;">도메인 허용 목록</h4>
+                    <ul>
+                        <li>사이트가 없는 경우(테스트/기본 운영): <code>example.com</code>, <code>admin.example.com</code></li>
+                        <li>사이트가 있는 경우: 해당 사이트 도메인을 등록 (예: <code>site-a.example.com</code>)</li>
+                        <li>여러 개일 경우 쉼표(<code>,</code>)로 구분 (예: <code>site-a.example.com, site-b.example.com</code>)</li>
+                        <li>입력된 도메인은 워크스페이스 식별자 및 연동 자격증명(키/토큰 등)과 함께 검증됩니다. (자격증명은 문서 비공개)</li>
+                    </ul>
+                    <div class="note">
+                        실 IP/도메인 예시는 공개용에서 제거했습니다.<br>
+                        문서 예시 IP가 필요할 경우 <code>203.0.113.0/24</code> 같은 “문서용 예시 대역”을 사용합니다.
+                    </div>
+
+                    <h4 style="font-weight:900;margin-top:18px;">시스템 프롬프트</h4>
+                    <ul>
+                        <li>AI 대화 시 적용되는 기본 시스템 프롬프트</li>
+                        <li>답변 범위/톤/정책을 제어</li>
+                        <li>입력 내용이 많아질수록 토큰 사용량 증가 가능</li>
+                    </ul>
+
+                    <h4 style="font-weight:900;margin-top:18px;">이미지(OCR/비전) 프롬프트</h4>
+                    <ul>
+                        <li>이미지 기반 분석 기능 사용 시 적용되는 프롬프트</li>
+                        <li>이미지 인식 규칙/금칙어/출력 형식 등을 정의</li>
+                        <li>서비스 목적에 맞게 최소한으로 유지하는 것을 권장</li>
+                    </ul>
+                </div>
+            </details>
+
+            <div class="img-wrap">
+                <img src="img/007.png" alt="서브 관리자 - 챗봇 설정 화면(예시)">
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>

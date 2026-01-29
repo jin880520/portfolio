@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>DB 테이블 명세서 (포트폴리오용 익명화 · 마스킹 버전)</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+        :root{
+            --bg:#f6f8fb; --card:#fff; --text:#0f172a; --sub:#64748b; --line:#e5e7eb;
+            --accent:#2563eb; --ok:#16a34a; --warn:#f59e0b; --danger:#b91c1c;
+            --mono: ui-monospace,SFMono-Regular,Menlo,Consolas,Monaco,monospace;
+            --r:14px; --shadow:0 8px 24px rgba(15,23,42,.08);
+        }
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,"Noto Sans KR",sans-serif}
+        a{color:var(--accent);text-decoration:none}
+        .wrap{max-width:1200px;margin:0 auto;padding:24px}
+        .header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+        .hgroup h1{margin:0 0 6px 0;font-size:22px}
+        .hgroup .meta{color:var(--sub);font-size:12px}
+        .tools{display:flex;gap:8px}
+        button{border:1px solid var(--line);background:#0b1220;color:#e5e7eb;border-radius:10px;padding:8px 10px;font:12px var(--mono);cursor:pointer}
+        .search{display:flex;gap:8px}
+        .search input{width:280px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+        .toc,.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+        .toc{padding:16px;margin:12px 0 20px}
+        .toc ol{margin:6px 0 0 18px}
+        h2{margin:0 0 10px 0;font-size:18px}
+        h3{margin:20px 0 8px 0;font-size:15px}
+        .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+        .card{padding:16px;margin:16px 0}
+        .kvt{display:grid;grid-template-columns:220px 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+        .kvt div{padding:10px 12px;border-bottom:1px solid var(--line)}
+        .kvt div:nth-child(odd){background:#f8fafc;font-weight:600}
+        .kvt div:nth-child(even){background:#fff}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+        th{background:#f8fafc}
+        code,pre{font-family:var(--mono)}
+        .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:#eef2ff;color:#334155;font-size:12px}
+        details{border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px 12px;margin-top: 10px;}
+        details>summary{cursor:pointer;font-weight:700;margin:-10px -12px 10px;padding:10px 12px}
+        .badge{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:3px 8px;background:#fff}
+        .ok{color:#065f46;background:#ecfdf5;border-color:#d1fae5}
+        .warn{color:#92400e;background:#fffbeb;border-color:#fde68a}
+        .danger{color:#991b1b;background:#fef2f2;border-color:#fecaca}
+        .muted{color:var(--sub)}
+        .code{background:#0b1220;color:#e5e7eb;border-radius:10px;padding:10px 12px;overflow:auto;font-size:12.5px}
+        .foot{margin:28px 0;color:#94a3b8}
+        @media (max-width:960px){ .kvt{grid-template-columns:1fr} .search input{width:100%} }
+        .hide{display:none !important}
+        mark{background:#fffb91;padding:0 .15em;border-radius:3px}
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="header">
+            <div class="hgroup">
+                <h1>DB 테이블 명세서 (포트폴리오용 익명화 · 마스킹 버전)</h1>
+                <div class="meta">
+                    실제 시스템의 식별자/테이블명/필드는 포트폴리오 공개를 위해 <b>익명화 및 일부 생략</b>되었습니다. (PII/Secret/벤더 구현 디테일 제거)
+                </div>
+            </div>
+            <div class="tools">
+                <div class="search">
+                    <input id="q" type="search" placeholder="테이블/컬럼/키워드 검색…" />
+                    <button onclick="runSearch()">검색</button>
+                    <button onclick="resetSearch()">초기화</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="toc">
+            <strong>목차</strong>
+            <ol>
+                <li><a href="#meta">DB 메타 정보</a></li>
+                <li><a href="#core">핵심 도메인 개요 (ER 관점)</a></li>
+                <li><a href="#tables">테이블 상세 명세</a></li>
+                <li><a href="#partition">사이트별 파티션 테이블(동일 스키마 묶음)</a></li>
+            </ol>
+        </div>
+
+        <!-- 1) 메타 -->
+        <section id="meta" class="card">
+            <h2>1) DB 메타 정보</h2>
+            <div class="kvt">
+                <div>DB 명</div><div><code>portfolio_db</code></div>
+                <div>엔진/버전</div><div>MariaDB 10.x (범위 표기)</div>
+                <div>문자셋</div><div>기본 <code>utf8mb4</code></div>
+                <div>주요 역할</div><div>계정/워크스페이스, 챗봇 세션/로그, 학습데이터(QnA/문서), 결제/구독, 게시판/영상, 스케줄러/알림</div>
+            </div>
+        </section>
+
+        <!-- 2) ER 개요 -->
+        <section id="core" class="card">
+            <h2>2) 핵심 도메인 개요 (ER 관점)</h2>
+            <ul>
+                <li><b>계정·워크스페이스</b>:
+                    소유 관계는 <code>accounts</code> <b>1:N</b> <code>workspaces</code> (소유자: <code>owner_account_id</code>),
+                    운영 권한 매핑은 <code>workspaces</code> ↔ <code>accounts</code> (중간 테이블: <code>workspace_memberships</code>)
+                </li>
+                <li><b>회원</b>: <code>end_users</code> 및 OAuth 연동, 로그인 로그</li>
+                <li><b>챗봇</b>: <code>chat_sessions</code> —(1:N)→ <code>chat_messages</code></li>
+                <li><b>메뉴/페이지</b>: <code>workspace_nav_items</code>, <code>chatbot_menus</code></li>
+                <li><b>학습데이터</b>: per-workspace QnA(<code>training_qna_* </code>) & 문서(<code>training_docs_* </code>) & 메뉴(<code>menu_embeddings_* </code>)</li>
+                <li><b>결제</b>: <code>products</code>, <code>payment_records</code>, <code>recurring_payment_methods</code>, <code>billing_failures</code></li>
+                <li><b>콘텐츠</b>: 게시판(<code>board_*</code>), 영상(<code>videos</code>, …)</li>
+                <li><b>운영</b>: <code>scheduler_jobs</code>, <code>blocked_ips</code>, <code>system_settings</code>, 알림(메시징), 템플릿</li>
+            </ul>
+            <p class="muted">
+                ※ 공개용 문서이므로 Secret/PII/벤더 종속 구현 디테일 및 일부 인덱스·제약은 생략 또는 일반화했습니다.
+            </p>
+        </section>
+
+        <!-- 3) 테이블 상세 -->
+        <section id="tables" class="card">
+            <h2>3) 테이블 상세 명세</h2>
+
+            <!-- 관리자/사이트 -->
+            <details>
+                <summary>계정 / 워크스페이스</summary>
+
+                <h3>accounts <span class="badge">운영자 계정</span></h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>키</th><th>기본값</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>account_id</td><td>int(11) auto_increment</td><td>PK</td><td>-</td><td>고유 아이디</td></tr>
+                        <tr><td>login_id</td><td>varchar(100)</td><td>UNIQUE</td><td>-</td><td>로그인 ID</td></tr>
+                        <tr><td>password_hash</td><td>varchar(255)</td><td></td><td>NULL</td><td>비밀번호(로컬)</td></tr>
+                        <tr><td>auth_provider</td><td>enum(local,oauth)</td><td></td><td>local</td><td>로그인 유형(범주화)</td></tr>
+                        <tr><td>profile_display_name</td><td>varchar(255)</td><td></td><td>NULL</td><td>표시 이름(PII 최소화)</td></tr>
+                        <tr><td>profile_meta_json</td><td>json/text</td><td></td><td>NULL</td><td>프로필 메타(연락처/사업자 등 세부는 비공개)</td></tr>
+                        <tr><td>logo_path</td><td>varchar(255)</td><td></td><td>NULL</td><td>로고 경로</td></tr>
+                        <tr><td>role</td><td>enum(owner,admin,pending)</td><td></td><td>NULL</td><td>권한</td></tr>
+                        <tr><td>segment</td><td>varchar(50)</td><td></td><td>NULL</td><td>분류</td></tr>
+                        <tr><td>status</td><td>enum(active,inactive,blocked)</td><td></td><td>active</td><td>계정 상태</td></tr>
+                        <tr><td>last_login_at</td><td>datetime</td><td></td><td>NULL</td><td>최종 로그인</td></tr>
+                        <tr><td>updated_by, updated_at, created_at</td><td>varchar/datetime</td><td></td><td>NULL</td><td>감사 로그</td></tr>
+                        <tr><td>notify_*</td><td>enum/varchar(5)</td><td></td><td>defaults</td><td>알림 수신 정책</td></tr>
+                    </tbody>
+                </table>
+                <p class="muted">인덱스: UNIQUE(login_id)</p>
+
+                <h3>workspaces <span class="badge">워크스페이스(테넌트)</span></h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>키</th><th>기본값</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>workspace_id</td><td>int auto_increment</td><td>PK</td><td>-</td><td>고유 아이디</td></tr>
+                        <tr><td>owner_account_id</td><td>int</td><td>FK→accounts.account_id</td><td>NULL</td><td>소유 계정</td></tr>
+                        <tr><td>workspace_name, workspace_key</td><td>varchar</td><td></td><td>defaults</td><td>식별/표시명</td></tr>
+                        <tr><td>branding_json</td><td>json/text</td><td></td><td>defaults</td><td>UI/테마/카피(세부 필드 비공개)</td></tr>
+                        <tr><td>widget_layout_json</td><td>json/text</td><td></td><td>defaults</td><td>위젯 위치/레이아웃(세부 비공개)</td></tr>
+                        <tr><td>access_domain</td><td>varchar(255)</td><td></td><td>NULL</td><td>허용 도메인</td></tr>
+
+                        <!-- (6개 반영) 모델 enum 값 목록 제거 + (2) 키/토큰류 컬럼명 삭제/범주화 -->
+                        <tr><td>llm_profile</td><td>varchar(50)</td><td></td><td>default</td><td>LLM 프로파일(구체 모델명 목록 비공개)</td></tr>
+
+                        <tr><td>similarity_thresholds_json</td><td>json/text</td><td></td><td>defaults</td><td>유사도 임계치(세부 비공개)</td></tr>
+                        <tr><td>session_policy_json</td><td>json/text</td><td></td><td>defaults</td><td>세션 정책(TTL/최대 등)</td></tr>
+
+                        <tr><td>system_prompt</td><td>text</td><td></td><td>defaults</td><td>시스템 프롬프트(요약/일부 생략 가능)</td></tr>
+                        <tr><td>feature_flags</td><td>varchar(64)</td><td></td><td>NULL</td><td>기능 플래그(범주화)</td></tr>
+
+                        <!-- (2) api_key 제거/범주화 -->
+                        <tr><td>integration_secret_ref</td><td>varchar(128)</td><td></td><td>NULL</td><td>연동 비밀키 참조값(실제 키/토큰 값 저장 여부 비공개)</td></tr>
+
+                        <tr><td>expires_at</td><td>datetime</td><td></td><td>current_timestamp()</td><td>만료일</td></tr>
+                        <tr><td>updated_by, updated_at, created_at</td><td>varchar/datetime</td><td></td><td>NULL</td><td>감사 로그</td></tr>
+                    </tbody>
+                </table>
+                <p class="muted">FK: (owner_account_id) → accounts(account_id) ON DELETE CASCADE.</p>
+
+                <h3>workspace_memberships <span class="badge">워크스페이스↔계정 권한 매핑</span></h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>키</th><th>기본값</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>id</td><td>int auto_increment</td><td>PK</td><td>-</td><td>매핑 PK</td></tr>
+                        <tr><td>workspace_id</td><td>int</td><td>FK→workspaces.workspace_id</td><td>-</td><td>워크스페이스</td></tr>
+                        <tr><td>account_id</td><td>int</td><td>FK→accounts.account_id</td><td>-</td><td>계정</td></tr>
+                        <tr><td>role</td><td>enum(owner,admin,viewer)</td><td></td><td>admin</td><td>권한(예시)</td></tr>
+                        <tr><td>created_at</td><td>datetime</td><td></td><td>current_timestamp()</td><td>등록 일시</td></tr>
+                    </tbody>
+                </table>
+                <p class="muted">UNIQUE(workspace_id, account_id) / FK 모두 ON DELETE CASCADE.</p>
+
+                <h3>account_groups <span class="badge">계정 그룹</span></h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>키</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>group_id</td><td>int auto_increment</td><td>PK</td><td>고유 ID</td></tr>
+                        <tr><td>group_code, group_name, description, is_active, sort_order</td><td>varchar/int</td><td></td><td>그룹 코드/명/설명/정렬</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>account_login_logs / account_oauth_links</h3>
+                <table>
+                    <thead><tr><th>테이블</th><th>핵심 컬럼</th><th>FK</th><th>비고</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>account_login_logs</td>
+                            <td>account_id, login_type, ip_address, user_agent, logged_in_at</td>
+                            <td>→ accounts(account_id)</td>
+                            <td>ON DELETE CASCADE</td>
+                        </tr>
+                        <tr>
+                            <td>account_oauth_links</td>
+                            <td>account_id, provider, provider_subject_id(unique), profile_meta_json</td>
+                            <td>→ accounts(account_id)</td>
+                            <td>UNIQUE(provider, provider_subject_id)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </details>
+
+            <!-- 회원 -->
+            <details>
+                <summary>일반 사용자(엔드유저) / 로그인</summary>
+
+                <h3>end_users</h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>키</th><th>기본값</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>user_id</td><td>int auto_increment</td><td>PK</td><td>-</td><td>사용자 PK</td></tr>
+                        <tr><td>workspace_key</td><td>varchar(100)</td><td>IDX</td><td>-</td><td>워크스페이스 식별자</td></tr>
+                        <tr><td>login_id</td><td>varchar(100)</td><td>UNQ(workspace_key, login_id)</td><td>-</td><td>로그인 UID</td></tr>
+                        <tr><td>password_hash</td><td>varchar(255)</td><td></td><td>NULL</td><td>로컬 패스워드</td></tr>
+
+                        <!-- (5) PII 범주화 -->
+                        <tr><td>display_name</td><td>varchar(255)</td><td></td><td>—</td><td>표시 이름</td></tr>
+                        <tr><td>contact_meta_json</td><td>json/text</td><td></td><td>NULL</td><td>연락처/프로필 메타(세부 항목 비공개)</td></tr>
+
+                        <tr><td>auth_provider</td><td>enum(local,oauth)</td><td></td><td>local</td><td>로그인 타입(범주화)</td></tr>
+                        <tr><td>status</td><td>enum(active,inactive,withdrawn,blocked)</td><td></td><td>active</td><td>상태</td></tr>
+                        <tr><td>last_login_at, created_at, updated_at</td><td>datetime</td><td></td><td>—</td><td>감사 로그</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>end_user_login_logs / end_user_oauth_links</h3>
+                <table>
+                    <thead><tr><th>테이블</th><th>핵심 컬럼</th><th>FK</th><th>비고</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>end_user_login_logs</td>
+                            <td>user_id, user_login_id, workspace_key, login_type, ip/ua, login_at</td>
+                            <td>→ end_users(user_id)</td>
+                            <td>CASCADE</td>
+                        </tr>
+                        <tr>
+                            <td>end_user_oauth_links</td>
+                            <td>user_id, workspace_key, provider, provider_subject_id(unique), profile_meta_json</td>
+                            <td>→ end_users(user_id)</td>
+                            <td>UNIQUE(provider, provider_subject_id, workspace_key)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </details>
+
+            <!-- 챗봇 세션/로그 -->
+            <details>
+                <summary>챗봇 세션 / 로그</summary>
+
+                <h3>chat_sessions</h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>키</th><th>기본값</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>session_id</td><td>varchar(64)</td><td>PK</td><td>—</td><td>세션 ID</td></tr>
+                        <tr><td>workspace_key, anon_id, login_id</td><td>varchar</td><td>IDX(workspace_key, anon_id)</td><td>—</td><td>식별자들</td></tr>
+                        <tr><td>is_paid</td><td>enum(Y,N,P)</td><td></td><td>P</td><td>유료 여부</td></tr>
+                        <tr><td>ip_address</td><td>varchar(45)</td><td></td><td>—</td><td>IP</td></tr>
+                        <tr><td>started_at, last_active_at, expires_at, status, end_reason, ended_at</td><td>datetime/enum</td><td></td><td>—</td><td>세션 수명</td></tr>
+                        <tr><td>is_handoff_to_admin</td><td>tinyint(1)</td><td></td><td>0</td><td>관리자 상담중</td></tr>
+                        <tr><td>actor_type</td><td>enum(guest,user,account)</td><td></td><td>guest</td><td>주체 타입(일반화)</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>chat_messages</h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>키</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>message_id</td><td>int auto_increment</td><td>PK</td><td>고유 ID</td></tr>
+                        <tr><td>session_id, anon_id, workspace_key</td><td>varchar</td><td>IDX(session), IDX(workspace_key,anon_id,created_at)</td><td>세션/식별</td></tr>
+                        <tr><td>sender</td><td>enum(user,bot,admin)</td><td></td><td>발신자</td></tr>
+                        <tr><td>actor_type</td><td>enum(guest,user,account)</td><td></td><td>주체 타입</td></tr>
+                        <tr><td>content</td><td>text</td><td></td><td>메시지</td></tr>
+                        <tr><td>token_usage_json</td><td>json/text</td><td></td><td>NULL</td><td>토큰 집계(범주화)</td></tr>
+                        <tr><td>model_profile</td><td>varchar(50)</td><td></td><td>NULL</td><td>모델 프로파일(구체 모델명 비공개)</td></tr>
+                        <tr><td>created_at</td><td>datetime</td><td></td><td>등록 시간</td></tr>
+                        <tr><td>is_deleted, deleted_at, deleted_by, delete_reason</td><td>tinyint/datetime/varchar</td><td></td><td>삭제 메타</td></tr>
+                    </tbody>
+                </table>
+            </details>
+
+            <!-- 메뉴/페이지 -->
+            <details>
+                <summary>메뉴 / 사용자 페이지</summary>
+
+                <h3>workspace_nav_items <span class="badge">사용자 페이지 메뉴 &amp; 뷰</span></h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>키</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>nav_id</td><td>int auto_increment</td><td>PK</td><td>고유 ID</td></tr>
+                        <tr><td>workspace_key</td><td>varchar(100)</td><td>IDX</td><td>워크스페이스</td></tr>
+                        <tr><td>name, icon</td><td>varchar</td><td></td><td>이름/아이콘</td></tr>
+                        <tr><td>page_type</td><td>enum(board,view,chatbot,call,custom_url,video)</td><td></td><td>페이지 타입</td></tr>
+                        <tr><td>target_id / target_key</td><td>int/varchar</td><td>IDX(workspace_key,type,key)</td><td>타겟(일반화)</td></tr>
+                        <tr><td>url / phone / target</td><td>varchar/enum</td><td></td><td>링크/전화/타깃</td></tr>
+                        <tr><td>html_content</td><td>longtext</td><td></td><td>뷰(HTML)</td></tr>
+                        <tr><td>is_mobile / is_desktop</td><td>tinyint</td><td></td><td>노출 제어</td></tr>
+                        <tr><td>sort_order, created_at, updated_at</td><td>int/datetime</td><td></td><td>정렬/감사</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>chatbot_menus <span class="badge">챗봇 버튼 메뉴</span></h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>workspace_key</td><td>varchar(100)</td><td>워크스페이스</td></tr>
+                        <tr><td>menu_scope</td><td>enum(common,greeting,input_area)</td><td>출력 위치</td></tr>
+                        <tr><td>action_type</td><td>enum(reply,link,download,guided)</td><td>버튼 동작</td></tr>
+                        <tr><td>label / url / target</td><td>varchar/enum</td><td>텍스트/링크/타깃</td></tr>
+                        <tr><td>file_name / file_path</td><td>varchar</td><td>첨부파일(옵션)</td></tr>
+                        <tr><td>reply_message</td><td>text</td><td>자동 응답</td></tr>
+                        <tr><td>sort_order, created_at, updated_at</td><td>int/datetime</td><td>정렬/감사</td></tr>
+                    </tbody>
+                </table>
+            </details>
+
+            <!-- 학습/업로드 -->
+            <details>
+                <summary>학습 / 업로드 로그</summary>
+
+                <h3>training_upload_jobs / doc_embedding_jobs / menu_import_jobs</h3>
+                <table>
+                    <thead><tr><th>테이블</th><th>핵심 컬럼</th><th>FK</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>training_upload_jobs</td>
+                            <td>account_id(FK), workspace_key, file_name, status(pending/completed/failed), chunk_count, error_message, created_at</td>
+                            <td>→ accounts(account_id)</td>
+                            <td>학습(QnA/문서) 업로드 이력</td>
+                        </tr>
+                        <tr>
+                            <td>doc_embedding_jobs</td>
+                            <td>account_id, workspace_key, file_name, status, chunk_count, error_message, created_at</td>
+                            <td>(idx_account_id)</td>
+                            <td>문서 임베딩 파이프라인 이력</td>
+                        </tr>
+                        <tr>
+                            <td>menu_import_jobs</td>
+                            <td>account_id, workspace_key, file_name, status, row_count, error_message, created_at</td>
+                            <td>—</td>
+                            <td>메뉴 일괄 업로드 로그</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </details>
+
+            <!-- 결제 -->
+            <details>
+                <summary>결제 / 구독</summary>
+
+                <h3>products</h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>product_id(PK)</td><td>int</td><td>상품 PK</td></tr>
+                        <tr><td>name / description</td><td>varchar</td><td>명/설명</td></tr>
+                        <tr><td>product_type</td><td>enum(one_time,subscription)</td><td>유형</td></tr>
+                        <tr><td>price / period_days / is_active / sort_order / segment</td><td>int/int/tinyint/int/varchar</td><td>가격/기간/판매/정렬/노출그룹</td></tr>
+                        <tr><td>image_path</td><td>varchar</td><td>이미지 경로</td></tr>
+                        <tr><td>created_at / updated_at</td><td>datetime</td><td>감사</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>payment_records / recurring_payment_methods / billing_failures</h3>
+                <table>
+                    <thead><tr><th>테이블</th><th>핵심 컬럼</th><th>키/제약</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>payment_records</td>
+                            <td>
+                                payer_login_id(식별자), product_id, order_ref(unique 선호),
+                                status, amount, method, requested_at/approved_at,
+                                subscription_meta_json(구독 관련 필드),
+                                provider_refs_json(결제사 참조값),
+                                raw_payload_json(마스킹 저장 가능)
+                            </td>
+                            <td>IDX(payer_login_id / order_ref / product_id)</td>
+                            <td>
+                                (2) 결제 키/영수증 URL 등 <b>민감 키/토큰/직링크 컬럼은 제거</b>하고
+                                “참조값/메타 JSON”으로 범주화
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>recurring_payment_methods</td>
+                            <td>
+                                payer_login_id(FK→accounts.login_id),
+                                method_ref(unique),
+                                masked_instrument, provider_name, is_active,
+                                created_at
+                            </td>
+                            <td>UNIQUE(payer_login_id)</td>
+                            <td>(2) billing_key 등 Secret은 저장하지 않고 “method_ref”로 대체</td>
+                        </tr>
+                        <tr>
+                            <td>billing_failures</td>
+                            <td>payment_id, payer_login_id, error_code, error_message, attempted_at, retry_count</td>
+                            <td>—</td>
+                            <td>자동결제 실패 이력</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="muted">
+                    ※ (2) Secret/Token/Key/Receipt URL 직접 저장 컬럼은 포트폴리오 공개용에서 제거/범주화했습니다.
+                </p>
+            </details>
+
+            <!-- 게시판/영상 -->
+            <details>
+                <summary>게시판 / 영상</summary>
+
+                <h3>board_posts / board_comments / board_files</h3>
+                <table>
+                    <thead><tr><th>테이블</th><th>핵심 컬럼</th><th>FK</th><th>비고</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>board_posts</td>
+                            <td>workspace_key, board_id, category(notice/post), author_type(guest/user/account), title/content, hidden, view_count, created/updated/deleted</td>
+                            <td>user_id → end_users(user_id) ON DELETE SET NULL</td>
+                            <td>인덱스 다수(일반화)</td>
+                        </tr>
+                        <tr>
+                            <td>board_comments</td>
+                            <td>post_id(FK), parent/depth, content, writer_display, is_admin, created/updated</td>
+                            <td>post_id → posts ON DELETE CASCADE</td>
+                            <td>대댓글 구조</td>
+                        </tr>
+                        <tr>
+                            <td>board_files</td>
+                            <td>post_id(FK), file_name/original, path, size/ext, uploaded_at</td>
+                            <td>post_id → posts ON DELETE CASCADE</td>
+                            <td>첨부파일</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>videos / video_files / video_comments / video_view_logs</h3>
+                <table>
+                    <thead><tr><th>테이블</th><th>핵심 컬럼</th><th>FK</th><th>비고</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>videos</td>
+                            <td>workspace_key, page_code(default 'videos'), title/description, category, is_hidden, status(pending/processing/ready/failed), duration/size, thumb, view_count, created/updated</td>
+                            <td>—</td>
+                            <td>IDX(workspace / status / hidden / 복합)</td>
+                        </tr>
+                        <tr>
+                            <td>video_files</td>
+                            <td>video_id(FK), file_kind(source/transcoded/subtitle/other), file_name/original/path, size/ext/mime, label, is_default</td>
+                            <td>→ videos(video_id) CASCADE</td>
+                            <td>트랜스코드/자막 관리</td>
+                        </tr>
+                        <tr>
+                            <td>video_comments</td>
+                            <td>video_id(FK), parent/depth, content, writer_display, is_admin, created/updated</td>
+                            <td>→ videos(video_id) CASCADE</td>
+                            <td>옵션</td>
+                        </tr>
+                        <tr>
+                            <td>video_view_logs</td>
+                            <td>video_id(FK), ip, ua, viewed_at</td>
+                            <td>→ videos(video_id) CASCADE</td>
+                            <td>옵션</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </details>
+
+            <!-- 운영/보안/시스템 -->
+            <details>
+                <summary>운영 / 보안 / 시스템</summary>
+
+                <h3>blocked_ips</h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>id(PK)</td><td>int unsigned</td><td>고유</td></tr>
+                        <tr><td>ip_address</td><td>varchar(45) INDEX</td><td>차단 IP</td></tr>
+                        <tr><td>reason, blocked_by, expires_at, blocked_at</td><td>varchar/datetime</td><td>사유/주체/해제 예정/차단 시각</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>system_settings</h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>id(PK)</td><td>int</td><td>—</td></tr>
+                        <!-- (5) PII 컬럼 상세 제거/범주화 -->
+                        <tr><td>legal_notice_json</td><td>json/text</td><td>법정 고지/고객센터 등 (세부 항목 비공개)</td></tr>
+                        <tr><td>is_payment_test</td><td>enum(Y,N) INDEX</td><td>결제 테스트 여부</td></tr>
+                        <tr><td>created_at / updated_at</td><td>datetime</td><td>감사</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>scheduler_jobs</h3>
+                <table>
+                    <thead><tr><th>컬럼</th><th>타입</th><th>설명</th></tr></thead>
+                    <tbody>
+                        <tr><td>id(PK)</td><td>varchar(191)</td><td>잡 ID</td></tr>
+                        <!-- (4) 구현 디테일 제거: epoch seconds/pickle 제거 -->
+                        <tr><td>next_run_at</td><td>datetime</td><td>다음 실행 시간</td></tr>
+                        <tr><td>payload_ref</td><td>varchar(255)</td><td>실행 페이로드 참조(직렬화 구현 디테일 비공개)</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>message_provider_config / message_templates</h3>
+                <table>
+                    <thead><tr><th>테이블</th><th>핵심 컬럼</th><th>비고</th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td>message_provider_config</td>
+                            <td>provider_type, credentials_ref, sender_profile_ref 등</td>
+                            <td>(2) api_key/secret 같은 Secret은 직접 표기하지 않고 참조로 범주화</td>
+                        </tr>
+                        <tr>
+                            <td>message_templates</td>
+                            <td>template_code/name, message_content, action_buttons_json, registered_at</td>
+                            <td>메시지 템플릿 저장</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </details>
+
+        </section>
+
+        <!-- 4) 파티션(워크스페이스별) -->
+        <section id="partition" class="card">
+            <h2>4) 워크스페이스별 파티션 테이블 (동일 스키마 묶음)</h2>
+            <p class="muted">
+                아래 각 묶음은 <b>동일 스키마</b>를 공유하며, 워크스페이스 식별자에 따라 별도 테이블로 분리될 수 있습니다.
+                (3) 공개용에서는 <b>실제 목록 나열을 제거</b>했습니다.
+            </p>
+
+            <details>
+                <summary>QnA 임베딩 · <code>training_qna_{workspace}</code></summary>
+                <div class="kvt" style="margin-top:8px">
+                    <div>공통 스키마</div>
+                    <div>
+                        <code>id(PK)</code>, <code>question text</code>, <code>answer text</code>,
+                        <code>vector longtext</code>, <code>created_at datetime</code>,
+                        UNIQUE(question(255), answer(255))
+                    </div>
+                    <div>비고</div>
+                    <div class="muted">예: <code>training_qna_{workspace}</code> 형태로 분리(실제 테이블명 목록은 비공개)</div>
+                </div>
+            </details>
+
+            <details>
+                <summary>문서 임베딩 · <code>training_docs_{workspace}</code></summary>
+                <div class="kvt" style="margin-top:8px">
+                    <div>공통 스키마</div>
+                    <div>
+                        <code>id(PK)</code>, <code>chunk_text text</code>, <code>chunk_title varchar(255)</code>,
+                        <code>source_file varchar(255)</code>, <code>vector longtext</code>, <code>created_at datetime</code>
+                    </div>
+                    <div>비고</div>
+                    <div class="muted">예: <code>training_docs_{workspace}</code> 형태로 분리(실제 테이블명 목록은 비공개)</div>
+                </div>
+            </details>
+
+            <details>
+                <summary>메뉴 임베딩 · <code>menu_embeddings_{workspace}</code></summary>
+                <div class="kvt" style="margin-top:8px">
+                    <div>공통 스키마</div>
+                    <div>
+                        <code>id(PK)</code>, <code>menu_name</code> UNIQUE, <code>menu_desc</code>,
+                        <code>menu_vector</code>(JSON), <code>menu_url</code>, <code>target</code>,
+                        <code>sort_order</code>, <code>created_at</code>
+                    </div>
+                    <div>비고</div>
+                    <div class="muted">예: <code>menu_embeddings_{workspace}</code> 형태로 분리(실제 테이블명 목록은 비공개)</div>
+                </div>
+            </details>
+        </section>
+    </div>
+
+<script>
+  function clearHighlights(root) {
+    root.querySelectorAll('mark').forEach(m => {
+      const parent = m.parentNode;
+      parent.replaceChild(document.createTextNode(m.textContent), m);
+      parent.normalize();
+    });
+  }
+
+  function highlightMatches(container, q) {
+    if (!q) return;
+
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        const p = node.parentElement;
+        if (p && (p.tagName === 'SCRIPT' || p.tagName === 'STYLE')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    const regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const toProcess = [];
+    while (walker.nextNode()) toProcess.push(walker.currentNode);
+
+    toProcess.forEach(textNode => {
+      const text = textNode.nodeValue;
+      regex.lastIndex = 0;
+      if (!regex.test(text)) return;
+
+      const frag = document.createDocumentFragment();
+      let lastIdx = 0;
+
+      text.replace(regex, (match, idx) => {
+        frag.appendChild(document.createTextNode(text.slice(lastIdx, idx)));
+        const mark = document.createElement('mark');
+        mark.textContent = match;
+        frag.appendChild(mark);
+        lastIdx = idx + match.length;
+        return match;
+      });
+
+      frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+      textNode.parentNode.replaceChild(frag, textNode);
+    });
+  }
+
+  function runSearch() {
+    const input = document.getElementById('q');
+    const q = (input ? input.value : '').trim().toLowerCase();
+
+    document.querySelectorAll('.hide').forEach(el => el.classList.remove('hide'));
+    clearHighlights(document.body);
+
+    if (!q) return;
+
+    // tables 섹션: details 내부를 H3 단위 블록으로 분리해 필터링
+    document.querySelectorAll('#tables details').forEach(details => {
+      let anyBlockVisible = false;
+
+      const children = Array.from(details.children).filter(el => el.tagName !== 'SUMMARY');
+      const blocks = [];
+      let current = null;
+
+      children.forEach(el => {
+        if (el.tagName === 'H3') {
+          if (current) blocks.push(current);
+          current = { nodes: [el] };
+        } else {
+          if (!current) current = { nodes: [el] };
+          else current.nodes.push(el);
+        }
+      });
+      if (current) blocks.push(current);
+
+      blocks.forEach(block => {
+        const text = block.nodes.map(n => (n.textContent || '').toLowerCase()).join(' ');
+        const match = text.includes(q);
+
+        block.nodes.forEach(n => n.classList.toggle('hide', !match));
+        if (match) {
+          anyBlockVisible = true;
+          block.nodes.forEach(n => highlightMatches(n, q));
+        }
+      });
+
+      details.open = anyBlockVisible;
+    });
+
+    // partition 섹션
+    document.querySelectorAll('#partition details').forEach(details => {
+      const match = (details.textContent || '').toLowerCase().includes(q);
+      details.open = !!match;
+      if (match) highlightMatches(details, q);
+    });
+
+    // 카드 단위 숨김
+    document.querySelectorAll('.card').forEach(card => {
+      const anyVisible = Array.from(card.querySelectorAll('details, table, .kvt, p, h3, ul'))
+        .some(el => !el.classList.contains('hide'));
+      const keepAlways = ['meta', 'core'].includes(card.id);
+      card.classList.toggle('hide', !keepAlways && !anyVisible);
+    });
+  }
+
+  function resetSearch() {
+    const qEl = document.getElementById('q');
+    if (qEl) qEl.value = '';
+
+    document.querySelectorAll('.hide').forEach(el => el.classList.remove('hide'));
+    clearHighlights(document.body);
+
+    document.querySelectorAll('details').forEach(d => { d.open = false; });
+    document.querySelectorAll('.card').forEach(card => card.classList.remove('hide'));
+  }
+</script>
+
+</body>
+</html>

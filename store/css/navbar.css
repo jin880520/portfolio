@@ -1,0 +1,111 @@
+.cb-sidemenu {
+  position: fixed; top: 0; left: 0;
+  width: 220px; height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid #ededed;
+  z-index: 1200;
+  display: flex; flex-direction: column;
+  padding: 0px 15px;
+  overflow-y: auto;
+}
+.cb-menu-admin-name{
+    color: #383838;
+    font-size: 1.07rem;
+    margin: 0 auto;
+    margin-bottom: 20px;
+    text-align: center;
+	font-weight: 900;
+}
+.cb-sidemenu-inner { display: flex; flex-direction: column; padding: 20px 0 20px 0; height: 100%; gap: 5px; align-items: stretch; }
+.cb-menu-group-title { color: #383838; font-size: 1.00rem; padding: 4px 14px 4px 12px; border-radius: 0 24px 24px 0; text-decoration: none; transition: background 0.13s, color 0.13s; display: block;}
+.cb-sidemenu-link { color: #383838; font-size: 1.00rem; padding: 4px 14px 4px 24px; text-decoration: none; transition: background 0.13s, color 0.13s; display: block;}
+.cb-sidemenu-link:hover, .cb-sidemenu-link.active { background: #efefef; color: #383838; border-radius: 5px; }
+.cb-sidemenu-section { margin: 16px 0 0 0; padding: 0; border-top: 1px solid #4456782a; }
+.cb-sidemenu-section-title { font-size: 0.98rem; color: #b9c6d7; padding: 16px 24px 5px 24px; font-weight: 700; letter-spacing: 0.01em; }
+
+.cb-navbar.mobile-navbar { display: none; background: #383838; position: sticky; top: 0; z-index: 3000; width: 100%; }
+.cb-navbar-inner { display: flex; align-items: center; min-height: 46px; height: 46px; }
+.cb-navbar-hamburger { background: none; border: none; width: 38px; height: 38px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; margin-left: 10px; }
+.cb-navbar-hamburger span { display: block; width: 23px; height: 3px; margin: 3px 0; background: #fff; border-radius: 2px; transition: all 0.2s; }
+.cb-navbar-title { color: #fff; font-weight: 700; font-size: 1.16rem; margin-left: 12px; letter-spacing: 0.03em; }
+.cb-mobile-menu-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fbfbfb; z-index: 10000; transition: opacity 0.2s; }
+.cb-mobile-menu-overlay.active { display: block; animation: menuFadeIn 0.18s; overflow-y: auto; }
+@keyframes menuFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.cb-mobile-menu-content { display: flex; flex-direction: column; align-items: flex-start; max-width: 380px; padding: 70px 25px 30px 25px; }
+.cb-mobile-menu-close {
+  background: none;
+  border: none;
+  color: #fbfbfb;
+  font-size: 2.0rem;
+  height: 30px;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 22.5px;
+  margin: 0;
+  z-index: 5001;
+  background: #383838;
+  box-shadow: none;
+  cursor: pointer;
+  border-bottom: 1px solid #ededed;
+  border-radius: 0px;
+}
+.cb-mobile-menu-close span,
+.cb-mobile-menu-close .icon {
+  margin-right: 0;
+}
+.cb-mobile-menu-group-title { color: #383838; font-size: 1.14rem; font-weight: 600; text-decoration: none; margin: 7px 0; padding: 4px 0; border-bottom: 1px solid #ededed; width: 100%; display: block; transition: color 0.15s; }
+.cb-mobile-menu-link { color: #383838; font-size: 1.14rem; font-weight: 600; text-decoration: none; margin: 7px 0; padding: 0px 0px 4px 15px; width: 100%; display: block; transition: color 0.15s; }
+.cb-mobile-menu-link:hover, .cb-mobile-menu-link.active { color: #000; }
+.cb-mobile-menu-section { margin-top: 28px; width: 100%; }
+.cb-mobile-menu-section-title { color: #b9c6d7; font-size: 1.02rem; font-weight: 700; margin-bottom: 8px; margin-top: 12px; }
+
+@media (max-width: 900px) {
+  .cb-sidemenu { display: none !important; }
+  .cb-navbar.mobile-navbar { display: block !important; }
+  body { margin-left: 0 !important; }
+}
+@media (min-width: 900px) {
+  .cb-navbar.mobile-navbar { display: none !important; }
+  body { margin-left: 250px; }
+}
+.cb-navbar.mobile-navbar { display: block; }
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #e0e0e0 transparent;
+}
+
+/* WebKit(Chromium, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #e0e0e0;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #e0e0e0;
+}
+
+/* 스크롤 영역이 따로 있는 요소에도 확실히 적용 (채팅 박스/입력창) */
+.cb-chatbot-box,
+.cb-chat-input {
+  scrollbar-width: thin;
+  scrollbar-color: #e0e0e0 transparent;
+}
+.cb-chatbot-box::-webkit-scrollbar,
+.cb-chat-input::-webkit-scrollbar { width: 10px; height: 10px; }
+.cb-chatbot-box::-webkit-scrollbar-thumb,
+.cb-chat-input::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 8px; }
+.cb-chatbot-box::-webkit-scrollbar-track,
+.cb-chat-input::-webkit-scrollbar-track { background: transparent; }

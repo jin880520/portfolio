@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>장바구니</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="css/navbar.css?v=val_251015_001">
+    <link rel="stylesheet" href="test/test.css?v=val_251015_001">
+    <link rel="stylesheet" href="css/member_store.css?v=val_251015_001">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        .layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+        @media (max-width:1000px){.layout{grid-template-columns:1fr}}
+        .cart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+        .cart-actions{display:flex;gap:8px;flex-wrap:wrap}
+        .cart-list{display:grid;gap:12px}
+        .cart-item{display:grid;grid-template-columns:28px 96px 1fr auto;gap:12px;align-items:center;border:1px solid var(--cb-line);border-radius:14px;padding:10px}
+        .cart-item.disabled{opacity:.5}
+        .thumb{width:96px;height:96px;overflow:hidden;border-radius:10px;background:#fafafa;border:1px solid var(--cb-line)}
+        .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+        .ci-title{font-weight:800;font-size:15px;line-height:1.4;margin-bottom:6px}
+        .ci-meta{color:var(--cb-sub);font-size:12px;margin-bottom:8px}
+        .qty{display:inline-flex;align-items:center;gap:8px}
+        .qty input{width:92px;text-align:center}
+        .price-box{text-align:right}
+        .price-now{font-weight:900;font-size:16px}
+        .price-origin{color:#9aa6b2;text-decoration:line-through;font-size:12px}
+        .badge.sale{background:#ffecec;color:#b02a37}
+        .ci-buttons{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+        .sum-line{display:flex;justify-content:space-between;align-items:center;margin:8px 0;font-size:15px}
+        .sum-line .val{font-weight:800}
+        .sum-total{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--cb-line);font-size:18px;font-weight:900}
+        .summary .btn{width:100%}
+        .coupon-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+        .divider{height:1px;background:var(--cb-line);margin:10px 0}
+        .buybar{display:none}
+        @media (max-width:900px){.buybar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--cb-line);box-shadow:0 -6px 16px rgba(51,65,85,.06);display:flex;gap:10px;padding:10px 12px;align-items:center;z-index:50}.buybar .price{font-weight:900;font-size:16px;margin-right:auto}body{padding-bottom:80px}}
+    </style>
+</head>
+<body>
+<aside class="cb-sidemenu"><!--개발시 해당 메뉴는 기존 메뉴를 사용하세요 {% include 'admin/navbar.html' %} -->
+    <div class="cb-sidemenu-inner cb-menu-style">
+        <div class="cb-menu-admin-logo" style="text-align:center;margin-bottom:12px;"><img src="test/testai.png" alt="사이트 로고" style="max-width:150px;object-fit:contain;"></div>
+        <div class="cb-menu-admin-name">테스트 유저님<br></div>
+        <a><span class="cb-menu-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>로그아웃</a>
+        <div class="cb-menu-toggle-all" style="display:flex;gap:15px;justify-content:flex-end;padding:12px;">
+            <a type="button" onclick="expandAllMenus()" class="toggle_all" id="expandAllBtn_p">＋</a>
+            <a type="button" onclick="collapseAllMenus()" class="toggle_all" id="collapseAllBtn_p">－</a>
+        </div>
+        <div class="cb-menu-group" data-key="menu_general">
+            <div class="cb-menu-group-title" onclick="toggleMenuGroup(this)">스토어</div>
+            <div class="cb-menu-group-body">
+                <a href="02_01.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-cart-shopping"></i></span>쇼핑</a>
+                <a href="02_02.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-basket-shopping"></i></span>장바구니</a>
+                <a href="02_03.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>주문/결제 내역</a>
+                <a href="02_04.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-ticket"></i></span>쿠폰</a>
+            </div>
+        </div>
+        <a>&nbsp;</a>
+    </div>
+</aside>
+<div class="wrap">
+    <div class="title">장바구니</div>
+    <div class="sub">가격은 부가세 포함입니다. 500,000원 이상 구매 시 기본 배송비(3,000원)가 무료예요.</div>
+    <div class="layout">
+        <div class="card">
+            <div class="cart-head">
+                <div><label><input type="checkbox" id="chkAll"> 전체선택</label> <span class="hint"> · 선택 상품만 주문/삭제 가능</span></div>
+                <div class="cart-actions">
+                    <button class="btn small danger" id="btnRemoveSel"><i class="fa-solid fa-trash-can"></i> 선택삭제</button>
+                    <button class="btn small" id="btnClear"><i class="fa-regular fa-circle-xmark"></i> 전체비우기</button>
+                </div>
+            </div>
+            <div class="cart-list" id="cartList"></div>
+        </div>
+        <div class="card summary" id="summaryCard">
+            <div class="coupon-row">
+                <i class="fa-solid fa-ticket"></i>
+                <select id="coupon" class="box">
+                    <option value="">쿠폰 선택</option>
+                    <option value="3000">3,000원 할인</option>
+                    <option value="10p">10% 할인(최대 10,000원)</option>
+                </select>
+                <button class="btn small" id="applyCoupon">적용</button>
+            </div>
+            <div class="divider"></div>
+            <div class="sum-line"><span>상품금액</span><span class="val" id="sumSubtotal">0원</span></div>
+            <div class="sum-line"><span>할인금액</span><span class="val" id="sumDiscount">0원</span></div>
+            <div class="sum-line"><span>배송비</span><span class="val" id="sumShip">0원</span></div>
+            <div class="sum-total"><span>결제예정금액</span><span id="sumTotal">0원</span></div>
+            <button class="btn primary" style="margin-top:12px" id="btnOrder"><i class="fa-solid fa-bolt"></i> 주문하기</button>
+        </div>
+    </div>
+</div>
+<div class="buybar" id="buybar">
+    <div class="price" id="barPrice">0원</div>
+    <button class="btn primary" id="barOrder"><i class="fa-solid fa-bolt"></i> 주문</button>
+</div>
+<script>
+    const fmtKRW = n => (n ?? 0).toLocaleString("ko-KR") + "원";
+    const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
+    const SHIPPING_BASE = 3000, SHIPPING_FREE_MIN = 500000;
+
+    let cart = [
+        { id: 1, title: "무선 이어폰 X1", sku: "WX1-BLK", color: "블랙", pack: "기본", price: 159000, sale: 129000, qty: 1, img: "https://picsum.photos/seed/c101/300/300", checked: true },
+        { id: 2, title: "실리콘 케이스", sku: "CASE-XS", color: "네이비", pack: "-", price: 19000, sale: 15000, qty: 2, img: "https://picsum.photos/seed/c102/300/300", checked: true },
+        { id: 3, title: "USB-C 충전 케이블", sku: "USBC-1M", color: "화이트", pack: "1m", price: 9000, sale: 0, qty: 1, img: "https://picsum.photos/seed/c103/300/300", checked: false }
+    ];
+
+    const elList = document.getElementById("cartList");
+    const elChkAll = document.getElementById("chkAll");
+    const elSumSubtotal = document.getElementById("sumSubtotal");
+    const elSumDiscount = document.getElementById("sumDiscount");
+    const elSumShip = document.getElementById("sumShip");
+    const elSumTotal = document.getElementById("sumTotal");
+    const elBarPrice = document.getElementById("barPrice");
+
+    function linePrice(item) {
+        const base = item.sale && item.sale < item.price ? item.sale : item.price;
+        return base * item.qty;
+    }
+    function lineOrigin(item) { return item.price * item.qty; }
+
+    function render() {
+        elList.innerHTML = "";
+        if (cart.length === 0) {
+            elList.innerHTML = '<div class="card" style="text-align:center;color:#6c7a89">장바구니가 비어 있습니다.</div>';
+        }
+        cart.forEach((it, idx) => {
+            const line = linePrice(it);
+            const origin = lineOrigin(it);
+            const disc = origin - line;
+            const row = document.createElement("div");
+            row.className = "cart-item" + (it.checked ? "" : "");
+            row.innerHTML =
+                `<input type="checkbox" class="chk-line" ${it.checked ? "checked" : ""} data-idx="${idx}">` +
+                `<div class="thumb"><img src="${it.img}" alt=""></div>` +
+                `<div>` +
+                `<div class="ci-title">${it.title}</div>` +
+                `<div class="ci-meta">SKU: ${it.sku} · 색상: ${it.color} · 구성: ${it.pack}</div>` +
+                `<div class="qty">` +
+                `<button class="btn small btn-minus" data-idx="${idx}">−</button>` +
+                `<input class="box qty-input" data-idx="${idx}" type="number" min="1" value="${it.qty}">` +
+                `<button class="btn small btn-plus" data-idx="${idx}">＋</button>` +
+                `${disc > 0 ? `<span class="badge sale" style="margin-left:8px">세일</span>` : ""}` +
+                `</div>` +
+                `<div class="ci-buttons"><button class="btn small ghost btn-remove" data-idx="${idx}"><i class="fa-regular fa-trash-can"></i> 삭제</button></div>` +
+                `</div>` +
+                `<div class="price-box"><div class="price-now">${fmtKRW(line)}</div>${disc > 0 ? `<div class="price-origin">${fmtKRW(origin)}</div>` : ""}</div>`;
+            elList.appendChild(row);
+        });
+        const allChecked = cart.length > 0 && cart.every(x => x.checked);
+        elChkAll.checked = allChecked;
+        calcAndRenderSummary();
+        bindRowEvents();
+    }
+
+    function bindRowEvents() {
+        document.querySelectorAll(".btn-minus").forEach(btn => {
+            btn.onclick = e => {
+                const i = +e.currentTarget.dataset.idx;
+                cart[i].qty = clamp(cart[i].qty - 1, 1, 999);
+                render();
+            };
+        });
+        document.querySelectorAll(".btn-plus").forEach(btn => {
+            btn.onclick = e => {
+                const i = +e.currentTarget.dataset.idx;
+                cart[i].qty = clamp(cart[i].qty + 1, 1, 999);
+                render();
+            };
+        });
+        document.querySelectorAll(".qty-input").forEach(inp => {
+            inp.onchange = e => {
+                const i = +e.currentTarget.dataset.idx;
+                const v = parseInt(e.currentTarget.value || "1", 10);
+                cart[i].qty = clamp(Number.isFinite(v) ? v : 1, 1, 999);
+                render();
+            };
+        });
+        document.querySelectorAll(".btn-remove").forEach(btn => {
+            btn.onclick = e => {
+                const i = +e.currentTarget.dataset.idx;
+                cart.splice(i, 1);
+                render();
+            };
+        });
+        document.querySelectorAll(".chk-line").forEach(chk => {
+            chk.onchange = e => {
+                const i = +e.currentTarget.dataset.idx;
+                cart[i].checked = e.currentTarget.checked;
+                calcAndRenderSummary();
+                const allChecked = cart.length > 0 && cart.every(x => x.checked);
+                elChkAll.checked = allChecked;
+            };
+        });
+    }
+
+    function calcAndRenderSummary() {
+        const sel = cart.filter(x => x.checked);
+        const subtotal = sel.reduce((s, x) => s + lineOrigin(x), 0);
+        const afterSale = sel.reduce((s, x) => s + linePrice(x), 0);
+        let discount = subtotal - afterSale;
+        const c = document.getElementById("coupon").dataset?.applied || "";
+        if (c === "3000") discount += 3000;
+        if (c === "10p") {
+            const cand = Math.floor(afterSale * 0.10);
+            discount += Math.min(cand, 10000);
+        }
+        const pay = afterSale - discount;
+        const shipping = pay > 0 && pay < SHIPPING_FREE_MIN ? SHIPPING_BASE : 0;
+        const total = Math.max(pay, 0) + shipping;
+        elSumSubtotal.textContent = fmtKRW(subtotal);
+        elSumDiscount.textContent = "-" + fmtKRW(discount);
+        elSumShip.textContent = fmtKRW(shipping);
+        elSumTotal.textContent = fmtKRW(total);
+        elBarPrice.textContent = fmtKRW(total);
+    }
+
+    document.getElementById("chkAll").onchange = e => {
+        const checked = e.currentTarget.checked;
+        cart = cart.map(x => ({ ...x, checked }));
+        render();
+    };
+    document.getElementById("btnRemoveSel").onclick = () => {
+        cart = cart.filter(x => !x.checked);
+        render();
+    };
+    document.getElementById("btnClear").onclick = () => {
+        if (confirm("장바구니를 모두 비우시겠어요?")) { cart = []; render(); }
+    };
+    document.getElementById("applyCoupon").onclick = () => {
+        const sel = document.getElementById("coupon").value;
+        document.getElementById("coupon").dataset.applied = sel;
+        calcAndRenderSummary();
+    };
+    document.getElementById("btnOrder").onclick = () => placeOrder();
+    document.getElementById("barOrder").onclick = () => placeOrder();
+
+    function placeOrder() {
+        const items = cart.filter(x => x.checked);
+        if (items.length === 0) { alert("주문할 상품을 선택해 주세요."); return; }
+        alert("주문 페이지로 이동합니다. (데모)\n" + JSON.stringify(items.map(i => ({ id: i.id, qty: i.qty }))));
+    }
+
+    render();
+</script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>매출 통계</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="css/navbar.css?v=val_251015_001">
+    <link rel="stylesheet" href="test/test.css?v=val_251015_001">
+    <link rel="stylesheet" href="css/admin_store.css?v=val_251015_001">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        :root { --cb-soft:12px; }
+        .cb-wrap { max-width:95%; margin:36px auto 80px; }
+        .cb-page-title { font-size:24px; font-weight:800; margin-bottom:6px; }
+        .cb-page-sub { color:var(--cb-sub); margin-bottom:16px; font-size:14px; line-height:1.5; }
+        .cb-filterbar { display:flex; flex-wrap:wrap; gap:10px 12px; align-items:center; background:#fff; border:1px solid var(--cb-line); border-radius:var(--cb-round); padding:14px 16px; box-shadow:var(--cb-shadow); margin-bottom:18px; }
+        .cb-filterbar .grp { display:flex; gap:8px; align-items:center; }
+        .cb-filterbar label { color:#445267; font-size:14px; margin-right:4px; }
+        .cb-filterbar select, .cb-filterbar input { border:1px solid var(--cb-line); border-radius:10px; padding:8px 10px; background:#fff; }
+        .cb-filterbar .quick { display:flex; gap:6px; margin-left:auto; flex-wrap:wrap; }
+        .cb-btn { border:1px solid var(--cb-line); background:#fff; border-radius:999px; padding:7px 12px; cursor:pointer; font-size:13px; transition:.15s; }
+        .cb-btn:hover { background:#f2f5fb; }
+        .cb-btn.primary { background:#2b63f1; color:#fff; border-color:#2b63f1; }
+        .cb-btn.icon { display:inline-flex; align-items:center; gap:6px; }
+        #siteIdSelect { width:100%; background:#fff; border:1px solid var(--cb-line); border-radius:12px; padding:10px 12px; font-size:15px; }
+        .cb-grid { display:grid; gap:16px; }
+        .g-2 { grid-template-columns:1fr 1fr; }
+        .g-3 { grid-template-columns:repeat(3,1fr); }
+        .g-4 { grid-template-columns:repeat(4,1fr); }
+        @media (max-width:1024px) { .g-4 { grid-template-columns:repeat(2,1fr); } }
+        @media (max-width:720px) { .g-3, .g-2, .g-4 { grid-template-columns:1fr; } }
+        .cb-card { background:#fff; border:1px solid var(--cb-line); border-radius:var(--cb-round); box-shadow:var(--cb-shadow); padding:16px; }
+        .cb-card .title { display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:8px; }
+        .cb-card .sub { color:var(--cb-sub); font-size:13px; }
+        .kpi { display:flex; align-items:flex-end; justify-content:space-between; }
+        .kpi .value { font-size:26px; font-weight:800; }
+        .kpi .delta { font-size:12px; padding:4px 8px; border-radius:999px; }
+        .delta.up { background:#e9f7ef; color:#1e7e34; }
+        .delta.down { background:#fdecea; color:#b02a37; }
+        .state { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:12px; border:1px dashed #e2e8f0; background:#fbfdff; }
+        .state .l { display:flex; align-items:center; gap:10px; }
+        .badge { padding:5px 8px; }
+        .count { font-size:18px; font-weight:700; }
+        .cb-table { width:100%; border-collapse:separate; border-spacing:0; }
+        .cb-table th, .cb-table td { border-bottom:1px solid var(--cb-line); padding:10px 8px; text-align:left; }
+        .cb-table th { font-weight:700; color:#3a4a62; background:#f9fbfe; }
+        .cb-table tr:last-child td { border-bottom:none; }
+        .sec-head { display:flex; align-items:center; gap:8px; margin:12px 2px 8px; }
+        .sec-head .r { margin-left:auto; display:flex; gap:8px; }
+        .chart-box { height:320px; position:relative; }
+        .chart-box canvas { width:100% !important; height:100% !important; }
+    </style>
+</head>
+<body>
+    <aside class="cb-sidemenu"><!--개발시 해당 메뉴는 기존 메뉴를 사용하세요 {% include 'admin/navbar.html' %} -->
+        <div class="cb-sidemenu-inner cb-menu-style">
+            <div class="cb-menu-admin-logo" style="text-align:center;margin-bottom:12px;"><img src="test/testai.png" alt="사이트 로고" style="max-width:150px;object-fit:contain;"></div>
+            <div class="cb-menu-admin-name">테스트 관리자님<br></div>
+            <a><span class="cb-menu-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>로그아웃</a>
+            <div class="cb-menu-toggle-all" style="display:flex;gap:15px;justify-content:flex-end;padding:12px;">
+                <a type="button" onclick="expandAllMenus()" class="toggle_all" id="expandAllBtn_p">＋</a>
+                <a type="button" onclick="collapseAllMenus()" class="toggle_all" id="collapseAllBtn_p">－</a>
+            </div>
+            <div class="cb-menu-group" data-key="menu_general">
+                <div class="cb-menu-group-title" onclick="toggleMenuGroup(this)">스토어 관리</div>
+                <div class="cb-menu-group-body">
+                    <a href="01_01.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-store"></i></span>스토어 설정</a>
+                    <a href="01_02.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-chart-line"></i></span>매출 통계</a>
+                    <a href="01_03.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-tags"></i></span>카테고리 관리</a>
+                    <a href="01_04.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-boxes-stacked"></i></span>상품 관리</a>
+                    <a href="01_05.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>주문/결제 관리</a>
+                    <a href="01_06.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-basket-shopping"></i></span>장바구니 내역</a>
+                    <a href="01_07.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-ticket"></i></span>쿠폰 발행</a>
+                </div>
+            </div>
+            <a>&nbsp;</a>
+        </div>
+    </aside>
+    <div class="cb-wrap">
+        <div class="cb-page-title">매출 통계
+            <select id="siteIdSelect" name="site_id" onchange="location.href='?site_id='+this.value" style="width:200px;">
+                <option value="">전체 사이트</option>
+                <option value="acb_allteaching_child">올티칭 유치원</option>
+                <option value="acb_academy_allteaching">올티칭 수학학원</option>
+                <option value="acb_songchon">세무법인 송촌</option>
+                <option value="acb_study_yi">올티칭스터디카페 물푸레점</option>
+                <option value="acb_mokdongmath">목동최상위수학학원</option>
+                <option value="acb_lms1">헬프lms</option>
+                <option value="acb_study_gm">스터디카페 광명점</option>
+                <option value="acb_study">구했어</option>
+                <option value="acb_studycafe">스터디카페</option>
+                <option value="acb_at_test">챗봇 테스트</option>
+                <option value="acb_culture">올티칭 컬쳐</option>
+                <option value="acb_cam">올티칭 캠퍼스</option>
+                <option value="acb_biz">올티칭 캠퍼스</option>
+                <option value="acb_ecce">올티칭 학점은행</option>
+                <option value="acb_ai">올티칭 AI</option>
+                <option value="acb_scce">올티칭 서사평</option>
+            </select>
+        </div>
+        <div class="ad_sub">※ 사이트 선택은 메인 관리자만 선택 가능합니다.</div>
+        <div class="cb-page-sub">기간·사이트 조건으로 필터링하여 매출, 환불, 실매출 및 주문 상태/비중을 확인합니다.</div>
+        <div class="cb-filterbar" id="filterBar">
+            <div class="grp"><label><i class="fa-regular fa-calendar"></i> 연</label><select id="selYear"></select><label>월</label><select id="selMonth"></select><label>일</label><select id="selDay"></select></div>
+            <div class="grp"><label><i class="fa-solid fa-filter"></i> 보기</label><select id="selGranularity"><option value="daily">일별</option><option value="monthly">월별</option><option value="hourly">시간대별</option></select></div>
+            <div class="quick"><button class="cb-btn" data-range="today">오늘</button><button class="cb-btn" data-range="7d">최근 7일</button><button class="cb-btn" data-range="thisMonth">이번달</button><button class="cb-btn" data-range="prevMonth">지난달</button><button class="cb-btn icon" id="btnExport"><i class="fa-solid fa-file-arrow-down"></i> CSV</button><button class="cb-btn primary icon" id="btnApply"><i class="fa-solid fa-rotate"></i> 적용</button></div>
+        </div>
+        <div class="cb-grid g-3">
+            <div class="cb-card">
+                <div class="title"><i class="fa-solid fa-sack-dollar"></i> 매출액</div>
+                <div class="kpi"><div class="value" id="kpiGross">-</div><div class="delta up" id="kpiGrossDelta">+0% 전기 대비</div></div>
+                <div class="sub">선택 기간 총 매출(할인/배송비 포함)</div>
+            </div>
+            <div class="cb-card">
+                <div class="title"><i class="fa-solid fa-arrow-rotate-left"></i> 환불액</div>
+                <div class="kpi"><div class="value" id="kpiRefund">-</div><div class="delta down" id="kpiRefundDelta">0% 전기 대비</div></div>
+                <div class="sub">승인된 환불 금액 합계</div>
+            </div>
+            <div class="cb-card">
+                <div class="title"><i class="fa-solid fa-chart-simple"></i> 실매출</div>
+                <div class="kpi"><div class="value" id="kpiNet">-</div><div class="delta up" id="kpiNetDelta">+0% 전기 대비</div></div>
+                <div class="sub">매출액 - 환불액</div>
+            </div>
+        </div>
+        <div class="cb-grid g-3" style="margin-top:16px;">
+            <div class="cb-card">
+                <div class="title"><i class="fa-regular fa-clipboard"></i> 주문 상태</div>
+                <div class="cb-grid g-2">
+                    <div class="state"><div class="l"><span class="badge">결제</span></div><div class="count" id="stPaid">0</div></div>
+                    <div class="state"><div class="l"><span class="badge">준비중</span></div><div class="count" id="stReady">0</div></div>
+                    <div class="state"><div class="l"><span class="badge">배송중</span></div><div class="count" id="stShipping">0</div></div>
+                    <div class="state"><div class="l"><span class="badge">완료</span></div><div class="count" id="stDone">0</div></div>
+                    <div class="state"><div class="l"><span class="badge">취소</span></div><div class="count" id="stCanceled">0</div></div>
+                    <div class="state"><div class="l"><span class="badge">반품</span></div><div class="count" id="stReturned">0</div></div>
+                </div>
+            </div>
+            <div class="cb-card">
+                <div class="title"><i class="fa-solid fa-coins"></i> 결제수단 비중</div>
+                <div class="chart-box"><canvas id="chartMethod"></canvas></div>
+            </div>
+            <div class="cb-card">
+                <div class="title"><i class="fa-solid fa-tags"></i> 카테고리 비중</div>
+                <div class="chart-box"><canvas id="chartCategory"></canvas></div>
+            </div>
+        </div>
+        <div class="cb-grid g-2" style="margin-top:16px;">
+            <div class="cb-card">
+                <div class="sec-head">
+                    <div class="title"><i class="fa-solid fa-wave-square"></i> 매출 추이</div>
+                    <div class="r"><button class="cb-btn" data-ser="gross">매출</button><button class="cb-btn" data-ser="net">실매출</button><button class="cb-btn" data-ser="refund">환불</button></div>
+                </div>
+                <div class="chart-box"><canvas id="chartTrend"></canvas></div>
+            </div>
+            <div class="cb-card">
+                <div class="sec-head">
+                    <div class="title"><i class="fa-solid fa-ranking-star"></i> 상품 Top 5</div>
+                    <div class="r"><button class="cb-btn" data-top="qty">수량</button><button class="cb-btn" data-top="amount">매출액</button></div>
+                </div>
+                <table class="cb-table" id="tblTop">
+                    <thead><tr><th>#</th><th>상품명</th><th class="muted">SKU</th><th>수량</th><th>매출액</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        const fmtKRW = n => (n ?? 0).toLocaleString('ko-KR') + '원';
+
+        function fillSelects() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const selYear = document.getElementById('selYear');
+            const selMonth = document.getElementById('selMonth');
+            const selDay = document.getElementById('selDay');
+            for (let i = y; i >= y - 5; i--) { const opt = document.createElement('option'); opt.value = i; opt.textContent = i + '년'; selYear.appendChild(opt); }
+            selYear.value = y;
+            for (let m = 1; m <= 12; m++) { const opt = document.createElement('option'); opt.value = m.toString().padStart(2, '0'); opt.textContent = m + '월'; selMonth.appendChild(opt); }
+            selMonth.value = (now.getMonth() + 1).toString().padStart(2, '0');
+            for (let d = 1; d <= 31; d++) { const opt = document.createElement('option'); opt.value = d.toString().padStart(2, '0'); opt.textContent = d + '일'; selDay.appendChild(opt); }
+            selDay.value = now.getDate().toString().padStart(2, '0');
+        }
+
+        let chartTrend, chartMethod, chartCategory;
+
+        function buildCharts() {
+            const ctxTrend = document.getElementById('chartTrend');
+            const ctxMethod = document.getElementById('chartMethod');
+            const ctxCategory = document.getElementById('chartCategory');
+
+            chartTrend = new Chart(ctxTrend, {
+                type: 'line',
+                data: { labels: [], datasets: [
+                    { label: '매출', data: [], tension: .25, borderWidth: 2, pointRadius: 2 },
+                    { label: '실매출', data: [], tension: .25, borderWidth: 2, pointRadius: 2 },
+                    { label: '환불', data: [], tension: .25, borderWidth: 2, pointRadius: 2 }
+                ] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+            });
+
+            chartMethod = new Chart(ctxMethod, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [{ data: [] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            chartCategory = new Chart(ctxCategory, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [{ data: [] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        function loadDummy() {
+            const kpi = { gross: 12500000, refund: 1200000, net: 11300000, grossDelta: +12, refundDelta: -5, netDelta: +9 };
+            document.getElementById('kpiGross').textContent = fmtKRW(kpi.gross);
+            document.getElementById('kpiRefund').textContent = fmtKRW(kpi.refund);
+            document.getElementById('kpiNet').textContent = fmtKRW(kpi.net);
+
+            const gD = document.getElementById('kpiGrossDelta');
+            const rD = document.getElementById('kpiRefundDelta');
+            const nD = document.getElementById('kpiNetDelta');
+            gD.textContent = (kpi.grossDelta > 0 ? '+' : '') + kpi.grossDelta + '% 전기 대비';
+            nD.textContent = (kpi.netDelta > 0 ? '+' : '') + kpi.netDelta + '% 전기 대비';
+            rD.textContent = (kpi.refundDelta > 0 ? '+' : '') + kpi.refundDelta + '% 전기 대비';
+            gD.className = 'delta ' + (kpi.grossDelta >= 0 ? 'up' : 'down');
+            nD.className = 'delta ' + (kpi.netDelta >= 0 ? 'up' : 'down');
+            rD.className = 'delta ' + (kpi.refundDelta <= 0 ? 'down' : 'up');
+
+            const st = { paid: 142, ready: 73, shipping: 41, done: 96, canceled: 12, returned: 6 };
+            document.getElementById('stPaid').textContent = st.paid;
+            document.getElementById('stReady').textContent = st.ready;
+            document.getElementById('stShipping').textContent = st.shipping;
+            document.getElementById('stDone').textContent = st.done;
+            document.getElementById('stCanceled').textContent = st.canceled;
+            document.getElementById('stReturned').textContent = st.returned;
+
+            const labels = ['01','02','03','04','05','06','07'];
+            chartTrend.data.labels = labels;
+            chartTrend.data.datasets[0].data = [120,200,150,300,260,280,320].map(v => v * 10000);
+            chartTrend.data.datasets[1].data = [110,180,140,280,240,260,300].map(v => v * 10000);
+            chartTrend.data.datasets[2].data = [10,20,10,20,20,20,20].map(v => v * 10000);
+            chartTrend.update();
+
+            chartMethod.data.labels = ['카드결제','가상계좌','간편결제'];
+            chartMethod.data.datasets[0].data = [62, 18, 20];
+            chartMethod.update();
+
+            chartCategory.data.labels = ['전자','도서','라이프','패션','기타'];
+            chartCategory.data.datasets[0].data = [35, 22, 18, 15, 10];
+            chartCategory.update();
+
+            const top = [
+                { name: '무선 이어폰 X1', sku: 'WX1-BLK', qty: 128, amt: 3920000 },
+                { name: '스마트 램프', sku: 'SML-02', qty: 93, amt: 1860000 },
+                { name: '키보드 K87', sku: 'K87', qty: 77, amt: 2310000 },
+                { name: '코지 머그컵', sku: 'MUG-CG', qty: 66, amt: 396000 },
+                { name: '러닝화 R2', sku: 'RUN-R2', qty: 51, amt: 4590000 }
+            ];
+            const tb = document.querySelector('#tblTop tbody');
+            tb.innerHTML = '';
+            top.forEach((r, i) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${i + 1}</td><td>${r.name}</td><td class="muted">${r.sku || '-'}</td><td>${r.qty}</td><td>${fmtKRW(r.amt)}</td>`;
+                tb.appendChild(tr);
+            });
+        }
+
+        function bindEvents() {
+            document.getElementById('btnApply').addEventListener('click', () => { loadDummy(); });
+            document.querySelectorAll('.cb-filterbar .cb-btn[data-range]').forEach(btn => { btn.addEventListener('click', () => {}); });
+            document.getElementById('btnExport').addEventListener('click', () => {
+                const rows = [];
+                const labels = chartTrend.data.labels;
+                const gross = chartTrend.data.datasets[0].data;
+                const net = chartTrend.data.datasets[1].data;
+                const refund = chartTrend.data.datasets[2].data;
+                rows.push(['구간', '매출', '실매출', '환불']);
+                for (let i = 0; i < labels.length; i++) rows.push([labels[i], gross[i], net[i], refund[i]]);
+                const csv = rows.map(r => r.join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'sales_stats.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+            });
+        }
+
+        function toggleMenuGroup(el) {
+            const group = el.closest('.cb-menu-group');
+            const key = group.dataset.key;
+            const isCollapsed = group.classList.toggle('collapsed');
+            const states = JSON.parse(localStorage.getItem('cb_menu_states') || '{}');
+            states[key] = !isCollapsed;
+            localStorage.setItem('cb_menu_states', JSON.stringify(states));
+        }
+        function expandAllMenus() {
+            const states = {};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group => { group.classList.remove('collapsed'); states[group.getAttribute('data-key')] = true; });
+            localStorage.setItem('cb_menu_states', JSON.stringify(states));
+        }
+        function collapseAllMenus() {
+            const states = {};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group => { group.classList.add('collapsed'); states[group.getAttribute('data-key')] = false; });
+            localStorage.setItem('cb_menu_states', JSON.stringify(states));
+        }
+
+        fillSelects();
+        buildCharts();
+        bindEvents();
+        loadDummy();
+    </script>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>상품 관리</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="css/navbar.css?v=val_251015_001">
+    <link rel="stylesheet" href="test/test.css?v=val_251015_001">
+    <link rel="stylesheet" href="css/admin_store.css?v=val_251015_001">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        .hint { word-break:break-word; overflow-wrap:anywhere; }
+        .badge.off { background:#f1f1f1; color:#7d8896; }
+        .badge.stop { background:#ffecec; color:#b02a37; }
+        .badge.soldout { background:#fff6d8; color:#8a6d00; }
+        .badge.active { background:#e9f7ef; color:#1e7e34; }
+        .thumb { width:56px; height:56px; border-radius:10px; object-fit:cover; border:1px solid var(--cb-line); background:#fafafa; }
+        .modal { width:min(720px,100%); }
+        .row { display:grid; grid-template-columns:160px 1fr; gap:10px; align-items:center; margin-bottom:12px; }
+        @media (max-width:620px) { .row { grid-template-columns:1fr; } .row label { margin-bottom:4px; } }
+        label { color:#3a4a62; font-weight:700; font-size:14px; }
+        .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        @media (max-width:720px) { .grid-2 { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <aside class="cb-sidemenu"><!--개발시 해당 메뉴는 기존 메뉴를 사용하세요 {% include 'admin/navbar.html' %} -->
+        <div class="cb-sidemenu-inner cb-menu-style">
+            <div class="cb-menu-admin-logo" style="text-align:center;margin-bottom:12px;"><img src="test/testai.png" alt="사이트 로고" style="max-width:150px;object-fit:contain;"></div>
+            <div class="cb-menu-admin-name">테스트 관리자님<br></div>
+            <a><span class="cb-menu-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>로그아웃</a>
+            <div class="cb-menu-toggle-all" style="display:flex;gap:15px;justify-content:flex-end;padding:12px;">
+                <a type="button" onclick="expandAllMenus()" class="toggle_all" id="expandAllBtn_p">＋</a>
+                <a type="button" onclick="collapseAllMenus()" class="toggle_all" id="collapseAllBtn_p">－</a>
+            </div>
+            <div class="cb-menu-group" data-key="menu_general">
+                <div class="cb-menu-group-title" onclick="toggleMenuGroup(this)">스토어 관리</div>
+                <div class="cb-menu-group-body">
+                    <a href="01_01.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-store"></i></span>스토어 설정</a>
+                    <a href="01_02.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-chart-line"></i></span>매출 통계</a>
+                    <a href="01_03.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-tags"></i></span>카테고리 관리</a>
+                    <a href="01_04.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-boxes-stacked"></i></span>상품 관리</a>
+                    <a href="01_05.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>주문/결제 관리</a>
+                    <a href="01_06.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-basket-shopping"></i></span>장바구니 내역</a>
+                    <a href="01_07.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-ticket"></i></span>쿠폰 발행</a>
+                </div>
+            </div>
+            <a>&nbsp;</a>
+        </div>
+    </aside>
+    <div class="wrap">
+        <div class="title">상품 관리
+            <select id="siteIdSelect" name="site_id" onchange="location.href='?site_id='+this.value" style="width:200px;">
+                <option value="">전체 사이트</option>
+                <option value="acb_allteaching_child">올티칭 유치원</option>
+                <option value="acb_academy_allteaching">올티칭 수학학원</option>
+                <option value="acb_songchon">세무법인 송촌</option>
+                <option value="acb_study_yi">올티칭스터디카페 물푸레점</option>
+                <option value="acb_mokdongmath">목동최상위수학학원</option>
+                <option value="acb_lms1">헬프lms</option>
+                <option value="acb_study_gm">스터디카페 광명점</option>
+                <option value="acb_study">구했어</option>
+                <option value="acb_studycafe">스터디카페</option>
+                <option value="acb_at_test">챗봇 테스트</option>
+                <option value="acb_culture">올티칭 컬쳐</option>
+                <option value="acb_cam">올티칭 캠퍼스</option>
+                <option value="acb_biz">올티칭 캠퍼스</option>
+                <option value="acb_ecce">올티칭 학점은행</option>
+                <option value="acb_ai">올티칭 AI</option>
+                <option value="acb_scce">올티칭 서사평</option>
+            </select>
+        </div>
+        <div class="ad_sub">※ 사이트 선택은 메인 관리자만 선택 가능합니다.</div>
+        <div class="sub">상단 “상품 등록”으로 새 상품을 추가하고, 각 행의 “수정/삭제”로 관리하세요.</div>
+        <div class="topbar">
+            <div class="filter card" style="padding:10px 12px;">
+                <input class="box" id="q" placeholder="상품명 또는 URL 식별자(영문) 검색" />
+                <select id="fStatus" title="판매 상태"><option value="">상태 전체</option><option value="active">판매중</option><option value="hidden">숨김</option><option value="soldout">품절</option><option value="archived">중지</option></select>
+                <select id="fCategory" title="카테고리"><option value="">카테고리 전체</option></select>
+                <button class="btn small" id="btnSearch">검색</button>
+                <button class="btn small ghost" id="btnReset">초기화</button>
+            </div>
+            <div class="spacer"></div>
+            <button class="btn primary" id="btnOpenCreate">상품 등록</button>
+        </div>
+        <div class="card table-wrap">
+            <table id="tbl" aria-label="상품 목록">
+                <thead>
+                    <tr>
+                        <th style="width:80px;">이미지</th>
+                        <th>상품명</th>
+                        <th>URL 식별자(영문)</th>
+                        <th style="width:110px;">판매가</th>
+                        <th style="width:110px;">개별 배송비</th>
+                        <th style="width:90px;">재고</th>
+                        <th style="width:110px;">상태</th>
+                        <th>카테고리</th>
+                        <th style="width:150px;">작업</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="pager-wrap" aria-label="페이지 이동">
+                <div class="page-size"><span class="hint">페이지당</span><select id="selPageSize" class="box" style="width:auto;padding:8px 10px;"><option value="10">10개</option><option value="20" selected>20개</option><option value="30">30개</option><option value="50">50개</option></select></div>
+                <div class="pager" id="pager"></div>
+                <div class="range-info" id="rangeInfo">총 0개</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-h" id="modalTitle">상품 등록</div>
+            <div class="modal-c">
+                <form id="prodForm">
+                    <input type="hidden" name="sp_id" />
+                    <div class="row">
+                        <label for="sp_title">상품명</label>
+                        <input class="box" id="sp_title" name="sp_title" required maxlength="120" placeholder="예) 무선 이어폰 X1" />
+                    </div>
+                    <div class="row">
+                        <label for="sp_slug">URL 식별자(영문)</label>
+                        <div class="inline">
+                            <input class="box" id="sp_slug" name="sp_slug" required maxlength="140" placeholder="예) wireless-earbuds-x1" />
+                            <button type="button" class="btn small ghost" id="btnMakeSlug">자동 생성</button>
+                        </div>
+                        <p class="hint col-span" style="margin:8px 0 0;">주소에 사용되는 짧은 영문 표기입니다. 공백 없이 <b>영문/숫자/하이픈(-)</b>만 권장됩니다.</p>
+                    </div>
+                    <div class="row">
+                        <label for="sp_summary">간단 설명</label>
+                        <textarea class="box" id="sp_summary" name="sp_summary" maxlength="300" placeholder="예) 액티브 노이즈 캔슬링, 최대 24시간 재생"></textarea>
+                    </div>
+                    <div class="row">
+                        <label>가격</label>
+                        <div class="grid-2">
+                            <input class="box" id="sp_price" name="sp_price" type="number" min="0" step="1" placeholder="정가(원)" />
+                            <input class="box" id="sp_sale_price" name="sp_sale_price" type="number" min="0" step="1" placeholder="판매가(원)" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label>개별 배송비</label>
+                        <div class="grid-2"><input class="box" id="sp_shipping_fee_base" name="sp_shipping_fee_base" type="number" min="0" step="1" placeholder="개별 배송비" /></div>
+                        <p class="hint col-span" style="margin:8px 0 0;">0을 입력하면 스토어 설정 값이 적용 됩니다.</p>
+                    </div>
+                    <div class="row">
+                        <label>재고 / SKU</label>
+                        <div class="grid-2">
+                            <input class="box" id="sp_stock" name="sp_stock" type="number" min="0" step="1" placeholder="재고 수량" />
+                            <input class="box" id="sp_sku" name="sp_sku" maxlength="60" placeholder="SKU (선택)" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="sp_category_id">카테고리</label>
+                        <select class="box" id="sp_category_id" name="sp_category_id"></select>
+                    </div>
+                    <div class="row">
+                        <label for="sp_status">판매 상태</label>
+                        <select class="box" id="sp_status" name="sp_status"><option value="active">판매중</option><option value="hidden">숨김</option><option value="soldout">품절</option><option value="archived">중지</option></select>
+                    </div>
+                    <div class="row">
+                        <label for="sp_thumb">대표 이미지</label>
+                        <div class="inline" style="width:100%;">
+                            <input class="box" id="sp_thumb" name="sp_thumb" type="file" accept="image/*" />
+                            <img id="thumbPreview" alt="" style="width:56px;height:56px;border-radius:10px;border:1px solid var(--cb-line);object-fit:cover;display:none;">
+                        </div>
+                        <p class="hint col-span" style="margin:8px 0 0;">이미지 파일을 선택하면 오른쪽에 미리보기가 표시됩니다. (JPG/PNG 권장)</p>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-f">
+                <button class="btn" id="btnCancel">취소</button>
+                <button class="btn primary" id="btnSave">저장</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="confirmBackdrop" aria-hidden="true">
+        <div class="modal confirm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+            <div class="modal-h" id="confirmTitle">삭제 확인</div>
+            <div class="modal-c">
+                <p>선택한 상품을 삭제하시겠습니까?</p>
+                <p class="hint">주문과 연결된 상품은 삭제가 제한될 수 있습니다.</p>
+            </div>
+            <div class="modal-f">
+                <button class="btn" id="btnConfirmCancel">취소</button>
+                <button class="btn danger" id="btnConfirmOk">삭제</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const categories=[{id:1,name:'전자'},{id:2,name:'도서'},{id:3,name:'패션'}];
+        let products=[
+            {sp_id:1,sp_title:'무선 이어폰 X1',sp_slug:'wireless-earbuds-x1',sp_price:159000,sp_sale_price:129000,sp_shipping_fee_base:3000,sp_stock:128,sp_sku:'WX1-BLK',sp_status:'active',sp_category_id:1,sp_category_name:'전자',sp_thumb_url:'https://picsum.photos/seed/ear/200/200'},
+            {sp_id:2,sp_title:'키보드 K87',sp_slug:'keyboard-k87',sp_price:99000,sp_sale_price:79000,sp_shipping_fee_base:4000,sp_stock:12,sp_sku:'K87',sp_status:'active',sp_category_id:1,sp_category_name:'전자',sp_thumb_url:'https://picsum.photos/seed/key/200/200'},
+            {sp_id:3,sp_title:'스마트 램프',sp_slug:'smart-lamp',sp_price:59000,sp_sale_price:39000,sp_shipping_fee_base:5000,sp_stock:0,sp_sku:'SML-02',sp_status:'soldout',sp_category_id:1,sp_category_name:'전자',sp_thumb_url:'https://picsum.photos/seed/lamp/200/200'},
+            {sp_id:4,sp_title:'코지 머그컵',sp_slug:'cozy-mug',sp_price:12000,sp_sale_price:9900,sp_shipping_fee_base:6000,sp_stock:300,sp_sku:'MUG-CG',sp_status:'hidden',sp_category_id:3,sp_category_name:'패션',sp_thumb_url:'https://picsum.photos/seed/mug/200/200'},
+            ...Array.from({length:38}).map((_,i)=>({sp_id:5+i,sp_title:`샘플 상품 ${i+1}`,sp_slug:`sample-product-${i+1}`,sp_price:30000+i*100,sp_sale_price:25000+i*100,sp_shipping_fee_base:0,sp_stock:(i*7)%50,sp_sku:`SP-${i+1}`,sp_status:(i%4===0?'archived':i%3===0?'hidden':i%2===0?'soldout':'active'),sp_category_id:(i%3)+1,sp_category_name:categories[(i%3)].name,sp_thumb_url:'https://picsum.photos/seed/'+(i+20)+'/200/200'}))
+        ];
+        let page=1,pageSize=20,filteredList=[];
+        let editId=null,deleteId=null;
+        const qs=(s,el=document)=>el.querySelector(s);
+        const qsa=(s,el=document)=>Array.from(el.querySelectorAll(s));
+        const elTblBody=()=>qs('#tbl tbody');
+        const fmtKRW=n=>n===0?'-':(n??0).toLocaleString('ko-KR')+'원';
+
+        function bindCategories(){
+            const selF=qs('#fCategory'); const selP=qs('#sp_category_id');
+            if(selF){ selF.innerHTML='<option value=\"\">카테고리 전체</option>'+categories.map(c=>`<option value=\"${c.id}\">${c.name}</option>`).join(''); }
+            if(selP){ selP.innerHTML=categories.map(c=>`<option value=\"${c.id}\">${c.name}</option>`).join(''); }
+        }
+
+        function openModal(){
+            const bd=qs('#modalBackdrop');
+            bd.style.display='flex';
+            bd.setAttribute('aria-hidden','false');
+            document.body.style.overflow='hidden';
+            setTimeout(()=>qs('#sp_title').focus(),0);
+        }
+        function closeModal(){
+            const bd=qs('#modalBackdrop');
+            bd.style.display='none';
+            bd.setAttribute('aria-hidden','true');
+            document.body.style.overflow='';
+            editId=null;
+            qs('#modalTitle').textContent='상품 등록';
+            qs('#prodForm').reset();
+            qs('#thumbPreview').style.display='none';
+            qs('#thumbPreview').src='';
+        }
+        function openConfirm(id){
+            deleteId=id;
+            const bd=qs('#confirmBackdrop');
+            bd.style.display='flex';
+            bd.setAttribute('aria-hidden','false');
+            document.body.style.overflow='hidden';
+        }
+        function closeConfirm(){
+            deleteId=null;
+            const bd=qs('#confirmBackdrop');
+            bd.style.display='none';
+            bd.setAttribute('aria-hidden','true');
+            document.body.style.overflow='';
+        }
+
+        function renderTablePage(){
+            const tb=elTblBody(); tb.innerHTML='';
+            const total=filteredList.length;
+            const totalPages=Math.max(1,Math.ceil(total/pageSize));
+            if(page>totalPages) page=totalPages;
+            const startIdx=(page-1)*pageSize;
+            const endIdx=Math.min(startIdx+pageSize,total);
+            const slice=filteredList.slice(startIdx,endIdx);
+            slice.forEach(row=>{
+                const statusBadge=row.sp_status==='active'?'<span class="badge active">판매중</span>':row.sp_status==='hidden'?'<span class="badge off">숨김</span>':row.sp_status==='soldout'?'<span class="badge soldout">품절</span>':'<span class="badge stop">중지</span>';
+                const tr=document.createElement('tr');
+                tr.innerHTML=`
+          <td class="td-thumb" data-label="이미지"><img class="thumb" src="${row.sp_thumb_url||''}" alt=""></td>
+          <td data-label="상품명">${row.sp_title}</td>
+          <td data-label="URL 식별자(영문)" class="muted">${row.sp_slug}</td>
+          <td data-label="판매가">${fmtKRW(row.sp_sale_price||row.sp_price||0)}</td>
+          <td data-label="개별 배송비">${fmtKRW(row.sp_shipping_fee_base||0)}</td>
+          <td data-label="재고">${row.sp_stock??0}</td>
+          <td data-label="상태">${statusBadge}</td>
+          <td data-label="카테고리">${row.sp_category_name||'-'}</td>
+          <td data-label="작업"><div class="actions"><button class="btn small" data-edit="${row.sp_id}">수정</button><button class="btn small danger" data-del="${row.sp_id}">삭제</button></div></td>`;
+                tb.appendChild(tr);
+            });
+            qsa('button[data-edit]').forEach(b=>b.addEventListener('click',()=>onEdit(Number(b.dataset.edit))));
+            qsa('button[data-del]').forEach(b=>b.addEventListener('click',()=>openConfirm(Number(b.dataset.del))));
+            renderPager(total,startIdx,endIdx,totalPages);
+        }
+        function renderPager(total,startIdx,endIdx,totalPages){
+            qs('#rangeInfo').textContent=total?`총 ${total.toLocaleString()}개 중 ${startIdx+1}–${endIdx} 표시`:'총 0개';
+            const cont=qs('#pager'); cont.innerHTML='';
+            const btnPrev=document.createElement('button'); btnPrev.className='page-btn'; btnPrev.textContent='‹'; btnPrev.title='이전 페이지'; btnPrev.disabled=page<=1; btnPrev.addEventListener('click',()=>setPage(page-1)); cont.appendChild(btnPrev);
+            const maxShow=7; let start=Math.max(1,page-Math.floor(maxShow/2)); let end=Math.min(totalPages,start+maxShow-1); if(end-start+1<maxShow) start=Math.max(1,end-maxShow+1);
+            for(let p=start;p<=end;p++){ const b=document.createElement('button'); b.className='page-btn'+(p===page?' active':''); b.textContent=p; b.setAttribute('aria-label',`페이지 ${p}`); b.addEventListener('click',()=>setPage(p)); cont.appendChild(b); }
+            const btnNext=document.createElement('button'); btnNext.className='page-btn'; btnNext.textContent='›'; btnNext.title='다음 페이지'; btnNext.disabled=page>=totalPages; btnNext.addEventListener('click',()=>setPage(page+1)); cont.appendChild(btnNext);
+        }
+        function setPage(p){
+            page=Math.max(1,p);
+            renderTablePage();
+            const top=qs('.table-wrap').getBoundingClientRect().top+window.scrollY-10;
+            window.scrollTo({top,behavior:'smooth'});
+        }
+
+        function buildFilteredList(){
+            const q=qs('#q').value.trim().toLowerCase();
+            const st=qs('#fStatus').value;
+            const cat=qs('#fCategory').value?Number(qs('#fCategory').value):'';
+            let list=products.slice();
+            if(q) list=list.filter(p=>(p.sp_title||'').toLowerCase().includes(q)||(p.sp_slug||'').toLowerCase().includes(q)||(p.sp_sku||'').toLowerCase().includes(q));
+            if(st) list=list.filter(p=>p.sp_status===st);
+            if(cat!=='') list=list.filter(p=>(p.sp_category_id||null)===cat);
+            const weight=s=>s==='active'?0:s==='hidden'?1:s==='soldout'?2:3;
+            list.sort((a,b)=>{const wa=weight(a.sp_status),wb=weight(b.sp_status);if(wa!==wb)return wa-wb;const ca=(a.sp_category_name||'').localeCompare(b.sp_category_name||'');if(ca!==0)return ca;return (a.sp_title||'').localeCompare(b.sp_title||'');});
+            filteredList=list;
+        }
+        function applyFilterAndRender(reset=false){
+            buildFilteredList();
+            if(reset) page=1;
+            renderTablePage();
+        }
+
+        function onCreate(){
+            editId=null;
+            qs('#modalTitle').textContent='상품 등록';
+            qs('#prodForm').reset();
+            qs('#thumbPreview').style.display='none';
+            openModal();
+        }
+        function onEdit(id){
+            const row=products.find(p=>p.sp_id===id);
+            if(!row) return;
+            editId=id;
+            qs('#modalTitle').textContent='상품 수정';
+            qs('input[name="sp_id"]').value=row.sp_id;
+            qs('#sp_title').value=row.sp_title||'';
+            qs('#sp_slug').value=row.sp_slug||'';
+            qs('#sp_summary').value=row.sp_summary||'';
+            qs('#sp_price').value=row.sp_price??'';
+            qs('#sp_sale_price').value=row.sp_sale_price??'';
+            qs('#sp_shipping_fee_base').value=row.sp_shipping_fee_base??'';
+            qs('#sp_stock').value=row.sp_stock??0;
+            qs('#sp_sku').value=row.sp_sku||'';
+            qs('#sp_status').value=row.sp_status||'active';
+            qs('#sp_category_id').value=row.sp_category_id||'';
+            if(row.sp_thumb_url){ const prev=qs('#thumbPreview'); prev.src=row.sp_thumb_url; prev.style.display='inline-block'; }
+            openModal();
+        }
+        function slugify(txt){
+            return (txt||'').toString().trim().toLowerCase().replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,140);
+        }
+        function onSave(){
+            const f=qs('#prodForm');
+            const payload={
+                sp_id:f.sp_id.value?Number(f.sp_id.value):null,
+                sp_title:f.sp_title.value.trim(),
+                sp_slug:f.sp_slug.value.trim(),
+                sp_summary:f.sp_summary.value.trim(),
+                sp_price:Number(f.sp_price.value||0),
+                sp_sale_price:Number(f.sp_sale_price.value||0),
+                sp_shipping_fee_base:Number(f.sp_shipping_fee_base.value||0),
+                sp_stock:Number(f.sp_stock.value||0),
+                sp_sku:(f.sp_sku.value||'').trim(),
+                sp_status:f.sp_status.value,
+                sp_category_id:f.sp_category_id.value?Number(f.sp_category_id.value):null
+            };
+            if(!payload.sp_title){ alert('상품명을 입력하세요.'); return; }
+            if(!payload.sp_slug){ alert('URL 식별자(영문)를 입력하세요.'); return; }
+            if(!payload.sp_sale_price && !payload.sp_price){ alert('판매가 또는 정가 중 최소 1개는 입력하세요.'); return; }
+            payload.sp_category_name=(categories.find(c=>c.id===payload.sp_category_id)||{}).name||'';
+            if(payload.sp_id){
+                const idx=products.findIndex(p=>p.sp_id===payload.sp_id);
+                if(idx>-1) products[idx]={...products[idx],...payload};
+            }else{
+                payload.sp_id=Math.max(0,...products.map(p=>p.sp_id))+1;
+                products.push(payload);
+            }
+            closeModal();
+            applyFilterAndRender(true);
+        }
+        function onDelete(id){
+            products=products.filter(p=>p.sp_id!==id);
+            applyFilterAndRender();
+        }
+
+        function bindEvents(){
+            qs('#btnOpenCreate').addEventListener('click',onCreate);
+            qs('#btnSave').addEventListener('click',onSave);
+            qs('#btnCancel').addEventListener('click',closeModal);
+            qs('#btnSearch').addEventListener('click',()=>applyFilterAndRender(true));
+            qs('#btnReset').addEventListener('click',()=>{qs('#q').value='';qs('#fStatus').value='';qs('#fCategory').value='';applyFilterAndRender(true);});
+            let typingTimer;
+            qs('#q').addEventListener('input',()=>{clearTimeout(typingTimer);typingTimer=setTimeout(()=>applyFilterAndRender(true),200);});
+            qs('#fStatus').addEventListener('change',()=>applyFilterAndRender(true));
+            qs('#fCategory').addEventListener('change',()=>applyFilterAndRender(true));
+            qs('#selPageSize').addEventListener('change',e=>{pageSize=Number(e.target.value)||20;page=1;renderTablePage();});
+            qs('#btnMakeSlug').addEventListener('click',()=>{const name=qs('#sp_title').value;const slug=slugify(name);qs('#sp_slug').value=slug;if(!slug) alert('상품명을 영문으로 바꾸기 어려워 자동 생성에 실패했습니다. 직접 입력해주세요.');});
+            qs('#sp_thumb').addEventListener('change',e=>{
+                const file=e.target.files&&e.target.files[0];
+                const prev=qs('#thumbPreview');
+                if(file){const reader=new FileReader();reader.onload=ev=>{prev.src=ev.target.result;prev.style.display='inline-block';};reader.readAsDataURL(file);}else{prev.style.display='none';prev.src='';}
+            });
+            qsa('.modal-backdrop').forEach(bd=>{bd.addEventListener('click',e=>{if(e.target===bd){if(bd.id==='modalBackdrop') closeModal(); if(bd.id==='confirmBackdrop') closeConfirm();}});});
+            qs('#btnConfirmOk').addEventListener('click',()=>{if(deleteId!=null) onDelete(deleteId); closeConfirm();});
+            qs('#btnConfirmCancel').addEventListener('click',closeConfirm);
+        }
+
+        bindCategories();
+        bindEvents();
+        applyFilterAndRender(true);
+        pageSize=Number(qs('#selPageSize').value)||20;
+        renderTablePage();
+
+        function toggleMenuGroup(el){
+            const group=el.closest('.cb-menu-group');
+            const key=group.dataset.key;
+            const isCollapsed=group.classList.toggle('collapsed');
+            const states=JSON.parse(localStorage.getItem('cb_menu_states')||'{}');
+            states[key]=!isCollapsed;
+            localStorage.setItem('cb_menu_states',JSON.stringify(states));
+        }
+        function expandAllMenus(){
+            const states={};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group=>{group.classList.remove('collapsed');states[group.getAttribute('data-key')]=true;});
+            localStorage.setItem('cb_menu_states',JSON.stringify(states));
+        }
+        function collapseAllMenus(){
+            const states={};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group=>{group.classList.add('collapsed');states[group.getAttribute('data-key')]=false;});
+            localStorage.setItem('cb_menu_states',JSON.stringify(states));
+        }
+    </script>
+</body>
+</html>

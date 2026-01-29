@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>카테고리 관리</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="css/navbar.css?v=val_251015_001">
+    <link rel="stylesheet" href="test/test.css?v=val_251015_001">
+    <link rel="stylesheet" href="css/admin_store.css?v=val_251015_001">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        .badge.off { background:#f1f1f1; color:#7d8896; }
+        .actions { display:flex; gap:8px; }
+        .modal { width:min(560px,100%); }
+        .row { display:grid; grid-template-columns:140px 1fr; gap:10px; align-items:center; margin-bottom:12px; }
+        @media (max-width:620px) { .row { grid-template-columns:1fr; } .row label { margin-bottom:4px; } }
+        label { color:#3a4a62; font-weight:700; font-size:14px; }
+        .hint { overflow-wrap:break-word; }
+        .col-span, .row>.col-span { grid-column:1 / -1; }
+        .switch { display:flex; gap:8px; align-items:center; }
+    </style>
+</head>
+<body>
+    <aside class="cb-sidemenu"><!--개발시 해당 메뉴는 기존 메뉴를 사용하세요 {% include 'admin/navbar.html' %} -->
+        <div class="cb-sidemenu-inner cb-menu-style">
+            <div class="cb-menu-admin-logo" style="text-align:center;margin-bottom:12px;"><img src="test/testai.png" alt="사이트 로고" style="max-width:150px;object-fit:contain;"></div>
+            <div class="cb-menu-admin-name">테스트 관리자님<br></div>
+            <a><span class="cb-menu-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>로그아웃</a>
+            <div class="cb-menu-toggle-all" style="display:flex;gap:15px;justify-content:flex-end;padding:12px;">
+                <a type="button" onclick="expandAllMenus()" class="toggle_all" id="expandAllBtn_p">＋</a>
+                <a type="button" onclick="collapseAllMenus()" class="toggle_all" id="collapseAllBtn_p">－</a>
+            </div>
+            <div class="cb-menu-group" data-key="menu_general">
+                <div class="cb-menu-group-title" onclick="toggleMenuGroup(this)">스토어 관리</div>
+                <div class="cb-menu-group-body">
+                    <a href="01_01.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-store"></i></span>스토어 설정</a>
+                    <a href="01_02.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-chart-line"></i></span>매출 통계</a>
+                    <a href="01_03.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-tags"></i></span>카테고리 관리</a>
+                    <a href="01_04.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-boxes-stacked"></i></span>상품 관리</a>
+                    <a href="01_05.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>주문/결제 관리</a>
+                    <a href="01_06.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-basket-shopping"></i></span>장바구니 내역</a>
+                    <a href="01_07.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-ticket"></i></span>쿠폰 발행</a>
+                </div>
+            </div>
+            <a>&nbsp;</a>
+        </div>
+    </aside>
+    <div class="wrap">
+        <div class="title">카테고리 관리
+            <select id="siteIdSelect" name="site_id" onchange="location.href='?site_id='+this.value" style="width:200px;">
+                <option value="">전체 사이트</option>
+                <option value="acb_allteaching_child">올티칭 유치원</option>
+                <option value="acb_academy_allteaching">올티칭 수학학원</option>
+                <option value="acb_songchon">세무법인 송촌</option>
+                <option value="acb_study_yi">올티칭스터디카페 물푸레점</option>
+                <option value="acb_mokdongmath">목동최상위수학학원</option>
+                <option value="acb_lms1">헬프lms</option>
+                <option value="acb_study_gm">스터디카페 광명점</option>
+                <option value="acb_study">구했어</option>
+                <option value="acb_studycafe">스터디카페</option>
+                <option value="acb_at_test">챗봇 테스트</option>
+                <option value="acb_culture">올티칭 컬쳐</option>
+                <option value="acb_cam">올티칭 캠퍼스</option>
+                <option value="acb_biz">올티칭 캠퍼스</option>
+                <option value="acb_ecce">올티칭 학점은행</option>
+                <option value="acb_ai">올티칭 AI</option>
+                <option value="acb_scce">올티칭 서사평</option>
+            </select>
+        </div>
+        <div class="ad_sub">※ 사이트 선택은 메인 관리자만 선택 가능합니다.</div>
+        <div class="sub">새 카테고리는 상단 “등록” 버튼으로 추가하세요. 수정·삭제는 각 항목의 오른쪽 버튼에서 처리합니다.</div>
+        <div class="topbar">
+            <div class="filter card" style="padding:10px 12px;">
+                <input class="box" id="q" placeholder="카테고리명 또는 URL 식별자(영문) 검색" />
+                <select id="fActive" title="노출 상태"><option value="">노출 전체</option><option value="Y">노출함</option><option value="N">숨김</option></select>
+                <select id="fParent" title="상위 카테고리"><option value="">상위 전체</option></select>
+                <button class="btn small" id="btnSearch">검색</button>
+                <button class="btn small ghost" id="btnReset">초기화</button>
+            </div>
+            <div class="spacer"></div>
+            <button class="btn primary" id="btnOpenCreate">카테고리 등록</button>
+        </div>
+        <div class="card table-wrap">
+            <table id="tbl" aria-label="카테고리 목록">
+                <thead>
+                    <tr>
+                        <th style="width:90px;">표시순서</th>
+                        <th>카테고리명</th>
+                        <th>URL 식별자(영문)</th>
+                        <th>상위 카테고리</th>
+                        <th style="width:110px;">노출</th>
+                        <th style="width:180px;">작업</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="pager-wrap" aria-label="페이지 이동">
+                <div class="page-size"><span class="hint">페이지당</span><select id="selPageSize" class="box" style="width:auto;padding:8px 10px;"><option value="10">10개</option><option value="20" selected>20개</option><option value="30">30개</option><option value="50">50개</option></select></div>
+                <div class="pager" id="pager"></div>
+                <div class="range-info" id="rangeInfo">총 0개</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-h" id="modalTitle">카테고리 등록</div>
+            <div class="modal-c">
+                <form id="catForm">
+                    <input type="hidden" name="sc_id" />
+                    <div class="row">
+                        <label for="sc_name">카테고리명</label>
+                        <input class="box" id="sc_name" name="sc_name" required maxlength="80" placeholder="예) 전자제품" />
+                    </div>
+                    <div class="row">
+                        <label for="sc_slug">URL 식별자(영문)</label>
+                        <div class="inline">
+                            <input class="box" id="sc_slug" name="sc_slug" required maxlength="100" placeholder="예) electronics" />
+                            <button type="button" class="btn small ghost" id="btnMakeSlug">자동 생성</button>
+                        </div>
+                        <div class="col-span">
+                            <p class="hint" style="margin:8px 0 0;">주소에 사용되는 짧은 영문 표기입니다. 공백 없이 <b>영문/숫자/하이픈(-)</b>만 권장됩니다. (예: <code>electronics</code>, <code>home-life</code>)</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="sc_parent_id">상위 카테고리</label>
+                        <select class="box" id="sc_parent_id" name="sc_parent_id"><option value="">(없음)</option></select>
+                    </div>
+                    <div class="row">
+                        <label for="sc_sort">표시순서</label>
+                        <input class="box" id="sc_sort" name="sc_sort" type="number" step="1" min="0" value="0" />
+                    </div>
+                    <div class="row">
+                        <label>노출</label>
+                        <div class="switch">
+                            <input id="sc_is_active" name="sc_is_active" type="checkbox" checked aria-label="노출 여부" />
+                            <span class="hint">체크 시 목록에 노출, 해제 시 숨김 처리됩니다.</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-f">
+                <button class="btn" id="btnCancel">취소</button>
+                <button class="btn primary" id="btnSave">저장</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="confirmBackdrop" aria-hidden="true">
+        <div class="modal confirm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+            <div class="modal-h" id="confirmTitle">삭제 확인</div>
+            <div class="modal-c">
+                <p>선택한 카테고리를 삭제하시겠습니까?</p>
+                <p class="hint">하위 카테고리나 연결된 상품이 있으면 삭제가 제한될 수 있습니다.</p>
+            </div>
+            <div class="modal-f">
+                <button class="btn" id="btnConfirmCancel">취소</button>
+                <button class="btn danger" id="btnConfirmOk">삭제</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let categories = [
+            { sc_id: 1, sc_name: '전자', sc_slug: 'electronics', sc_parent_id: null, sc_parent_name: '', sc_sort: 10, sc_is_active: 'Y' },
+            { sc_id: 2, sc_name: '도서', sc_slug: 'books', sc_parent_id: null, sc_parent_name: '', sc_sort: 20, sc_is_active: 'Y' },
+            { sc_id: 3, sc_name: '노트북', sc_slug: 'laptops', sc_parent_id: 1, sc_parent_name: '전자', sc_sort: 11, sc_is_active: 'Y' },
+            { sc_id: 4, sc_name: '액세서리', sc_slug: 'accessories', sc_parent_id: 1, sc_parent_name: '전자', sc_sort: 12, sc_is_active: 'N' },
+            ...Array.from({ length: 36 }).map((_, i) => ({ sc_id: 5 + i, sc_name: `샘플${i + 1}`, sc_slug: `sample-${i + 1}`, sc_parent_id: null, sc_parent_name: '', sc_sort: 30 + i, sc_is_active: i % 3 ? 'Y' : 'N' }))
+        ];
+        let editId = null, deleteId = null;
+        let page = 1, pageSize = 20, filteredList = [];
+        const qs = (s, el = document) => el.querySelector(s);
+        const qsa = (s, el = document) => Array.from(el.querySelectorAll(s));
+        const elTblBody = () => qs('#tbl tbody');
+
+        function openModal() {
+            const bd = qs('#modalBackdrop');
+            bd.style.display = 'flex';
+            bd.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => qs('#sc_name').focus(), 0);
+        }
+        function closeModal() {
+            const bd = qs('#modalBackdrop');
+            bd.style.display = 'none';
+            bd.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            editId = null;
+            qs('#modalTitle').textContent = '카테고리 등록';
+            qs('#catForm').reset();
+            qs('#sc_is_active').checked = true;
+            qs('#sc_sort').value = 0;
+            hydrateParentOptions();
+        }
+        function openConfirm(id) {
+            deleteId = id;
+            const bd = qs('#confirmBackdrop');
+            bd.style.display = 'flex';
+            bd.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeConfirm() {
+            deleteId = null;
+            const bd = qs('#confirmBackdrop');
+            bd.style.display = 'none';
+            bd.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
+
+        function renderTablePage() {
+            const tb = elTblBody(); tb.innerHTML = '';
+            const total = filteredList.length;
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            if (page > totalPages) page = totalPages;
+            const startIdx = (page - 1) * pageSize;
+            const endIdx = Math.min(startIdx + pageSize, total);
+            const slice = filteredList.slice(startIdx, endIdx);
+
+            slice.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+          <td data-label="표시순서">${row.sc_sort ?? ''}</td>
+          <td data-label="카테고리명">${row.sc_name}</td>
+          <td data-label="URL 식별자(영문)" class="muted">${row.sc_slug}</td>
+          <td data-label="상위 카테고리">${row.sc_parent_name || '-'}</td>
+          <td data-label="노출">${row.sc_is_active === 'Y' ? '<span class="badge">노출</span>' : '<span class="badge off">숨김</span>'}</td>
+          <td data-label="작업">
+            <div class="actions">
+              <button class="btn small" data-edit="${row.sc_id}" aria-label="수정">수정</button>
+              <button class="btn small danger" data-del="${row.sc_id}" aria-label="삭제">삭제</button>
+            </div>
+          </td>`;
+                tb.appendChild(tr);
+            });
+
+            qsa('button[data-edit]').forEach(b => b.addEventListener('click', () => onEdit(Number(b.dataset.edit))));
+            qsa('button[data-del]').forEach(b => b.addEventListener('click', () => openConfirm(Number(b.dataset.del))));
+            renderPager(total, startIdx, endIdx, totalPages);
+        }
+        function renderPager(total, startIdx, endIdx, totalPages) {
+            qs('#rangeInfo').textContent = total ? `총 ${total.toLocaleString()}개 중 ${startIdx + 1}–${endIdx} 표시` : '총 0개';
+            const cont = qs('#pager'); cont.innerHTML = '';
+            const prev = document.createElement('button');
+            prev.className = 'page-btn'; prev.textContent = '‹'; prev.title = '이전 페이지';
+            prev.disabled = page <= 1; prev.addEventListener('click', () => setPage(page - 1)); cont.appendChild(prev);
+            const maxShow = 7;
+            let start = Math.max(1, page - Math.floor(maxShow / 2));
+            let end = Math.min(totalPages, start + maxShow - 1);
+            if (end - start + 1 < maxShow) start = Math.max(1, end - maxShow + 1);
+            for (let p = start; p <= end; p++) {
+                const b = document.createElement('button');
+                b.className = 'page-btn' + (p === page ? ' active' : '');
+                b.textContent = p; b.setAttribute('aria-label', `페이지 ${p}`);
+                b.addEventListener('click', () => setPage(p));
+                cont.appendChild(b);
+            }
+            const next = document.createElement('button');
+            next.className = 'page-btn'; next.textContent = '›'; next.title = '다음 페이지';
+            next.disabled = page >= totalPages; next.addEventListener('click', () => setPage(page + 1)); cont.appendChild(next);
+        }
+        function setPage(p) {
+            page = Math.max(1, p);
+            renderTablePage();
+            const top = qs('.table-wrap').getBoundingClientRect().top + window.scrollY - 10;
+            window.scrollTo({ top, behavior: 'smooth' });
+        }
+
+        function hydrateParentOptions(selected = null) {
+            const sel = qs('#sc_parent_id');
+            const currentId = editId;
+            sel.innerHTML = '<option value="">(없음)</option>';
+            categories.filter(c => c.sc_id !== currentId).filter(c => c.sc_parent_id === null).sort((a, b) => (a.sc_sort ?? 0) - (b.sc_sort ?? 0)).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = String(c.sc_id);
+                opt.textContent = c.sc_name;
+                sel.appendChild(opt);
+            });
+            if (selected !== null && selected !== '') sel.value = String(selected);
+        }
+        function hydrateListParentFilter() {
+            const sel = qs('#fParent');
+            const current = sel.value;
+            sel.innerHTML = '<option value="">상위 전체</option>';
+            categories.filter(c => c.sc_parent_id === null).sort((a, b) => (a.sc_sort ?? 0) - (b.sc_sort ?? 0)).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = String(c.sc_id);
+                opt.textContent = c.sc_name;
+                sel.appendChild(opt);
+            });
+            sel.value = current;
+        }
+
+        function buildFilteredList() {
+            const q = qs('#q').value.trim().toLowerCase();
+            const act = qs('#fActive').value;
+            const par = qs('#fParent').value ? Number(qs('#fParent').value) : '';
+            let list = categories.slice();
+            if (q) list = list.filter(c => (c.sc_name || '').toLowerCase().includes(q) || (c.sc_slug || '').toLowerCase().includes(q));
+            if (act) list = list.filter(c => c.sc_is_active === act);
+            if (par !== '') list = list.filter(c => (c.sc_parent_id || null) === par);
+            list.sort((a, b) => {
+                const pa = a.sc_parent_id ? 1 : 0, pb = b.sc_parent_id ? 1 : 0;
+                if (pa !== pb) return pa - pb;
+                const sa = (a.sc_sort ?? 0), sb = (b.sc_sort ?? 0);
+                if (sa !== sb) return sa - sb;
+                return (a.sc_name || '').localeCompare(b.sc_name || '');
+            });
+            list = list.map(c => {
+                const p = categories.find(x => x.sc_id === c.sc_parent_id);
+                return { ...c, sc_parent_name: p ? p.sc_name : '' };
+            });
+            filteredList = list;
+        }
+        function applyFilterAndRender(reset = false) {
+            hydrateListParentFilter();
+            buildFilteredList();
+            if (reset) page = 1;
+            renderTablePage();
+        }
+
+        function onCreate() {
+            editId = null;
+            qs('#modalTitle').textContent = '카테고리 등록';
+            hydrateParentOptions();
+            qs('#catForm').reset();
+            qs('#sc_is_active').checked = true;
+            qs('#sc_sort').value = 0;
+            openModal();
+        }
+        function onEdit(id) {
+            const row = categories.find(c => c.sc_id === id);
+            if (!row) return;
+            editId = id;
+            qs('#modalTitle').textContent = '카테고리 수정';
+            hydrateParentOptions(row.sc_parent_id ?? '');
+            qs('input[name="sc_id"]').value = id;
+            qs('#sc_name').value = row.sc_name || '';
+            qs('#sc_slug').value = row.sc_slug || '';
+            qs('#sc_sort').value = row.sc_sort ?? 0;
+            qs('#sc_is_active').checked = row.sc_is_active === 'Y';
+            openModal();
+        }
+        function slugify(txt) {
+            return (txt || '').toString().trim().toLowerCase().replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 100);
+        }
+        function onSave() {
+            const f = qs('#catForm');
+            const payload = {
+                sc_id: f.sc_id.value ? Number(f.sc_id.value) : null,
+                sc_name: f.sc_name.value.trim(),
+                sc_slug: f.sc_slug.value.trim(),
+                sc_parent_id: f.sc_parent_id.value ? Number(f.sc_parent_id.value) : null,
+                sc_sort: f.sc_sort.value ? Number(f.sc_sort.value) : 0,
+                sc_is_active: f.sc_is_active.checked ? 'Y' : 'N'
+            };
+            if (!payload.sc_name) { alert('카테고리명을 입력하세요.'); return; }
+            if (!payload.sc_slug) { alert('URL 식별자(영문)를 입력하세요.'); return; }
+            if (payload.sc_id) {
+                const idx = categories.findIndex(c => c.sc_id === payload.sc_id);
+                if (idx > -1) {
+                    const parent = categories.find(c => c.sc_id === payload.sc_parent_id);
+                    categories[idx] = { ...categories[idx], ...payload, sc_parent_name: parent ? parent.sc_name : '' };
+                }
+            } else {
+                const newId = Math.max(0, ...categories.map(c => c.sc_id)) + 1;
+                const parent = categories.find(c => c.sc_id === payload.sc_parent_id);
+                categories.push({ ...payload, sc_id: newId, sc_parent_name: parent ? parent.sc_name : '' });
+            }
+            closeModal();
+            applyFilterAndRender(true);
+        }
+        function onDelete(id) {
+            categories = categories.filter(c => c.sc_id !== id);
+            applyFilterAndRender();
+        }
+
+        qs('#btnOpenCreate').addEventListener('click', onCreate);
+        qs('#btnSave').addEventListener('click', onSave);
+        qs('#btnCancel').addEventListener('click', closeModal);
+        qs('#btnSearch').addEventListener('click', () => applyFilterAndRender(true));
+        qs('#btnReset').addEventListener('click', () => { qs('#q').value = ''; qs('#fActive').value = ''; qs('#fParent').value = ''; applyFilterAndRender(true); });
+        let typingTimer;
+        qs('#q').addEventListener('input', () => { clearTimeout(typingTimer); typingTimer = setTimeout(() => applyFilterAndRender(true), 200); });
+        qs('#fActive').addEventListener('change', () => applyFilterAndRender(true));
+        qs('#fParent').addEventListener('change', () => applyFilterAndRender(true));
+        qs('#selPageSize').addEventListener('change', (e) => { pageSize = Number(e.target.value) || 20; page = 1; renderTablePage(); });
+        qs('#btnMakeSlug').addEventListener('click', () => { const name = qs('#sc_name').value; const slug = slugify(name); qs('#sc_slug').value = slug; if (!slug) alert('카테고리명을 영문으로 바꾸기 어려워 자동 생성에 실패했습니다. 직접 입력해주세요.'); });
+        qsa('.modal-backdrop').forEach(bd => { bd.addEventListener('click', (e) => { if (e.target === bd) { if (bd.id === 'modalBackdrop') closeModal(); if (bd.id === 'confirmBackdrop') closeConfirm(); } }); });
+        qs('#btnConfirmOk').addEventListener('click', () => { if (deleteId != null) onDelete(deleteId); closeConfirm(); });
+        qs('#btnConfirmCancel').addEventListener('click', closeConfirm);
+        hydrateListParentFilter();
+        applyFilterAndRender(true);
+        pageSize = Number(qs('#selPageSize').value) || 20;
+        renderTablePage();
+
+        function toggleMenuGroup(el) {
+            const group = el.closest('.cb-menu-group');
+            const key = group.dataset.key;
+            const isCollapsed = group.classList.toggle('collapsed');
+            const states = JSON.parse(localStorage.getItem('cb_menu_states') || '{}');
+            states[key] = !isCollapsed;
+            localStorage.setItem('cb_menu_states', JSON.stringify(states));
+        }
+        function expandAllMenus() {
+            const states = {};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group => { group.classList.remove('collapsed'); states[group.getAttribute('data-key')] = true; });
+            localStorage.setItem('cb_menu_states', JSON.stringify(states));
+        }
+        function collapseAllMenus() {
+            const states = {};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group => { group.classList.add('collapsed'); states[group.getAttribute('data-key')] = false; });
+            localStorage.setItem('cb_menu_states', JSON.stringify(states));
+        }
+    </script>
+</body>
+</html>

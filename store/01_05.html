@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <title>주문/결제 관리</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="css/navbar.css?v=val_251015_001">
+    <link rel="stylesheet" href="test/test.css?v=val_251015_001">
+    <link rel="stylesheet" href="css/admin_store.css?v=val_251015_001">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <style>
+        .badge.pay-wait { background:#fff6d8; color:#8a6d00; }
+        .badge.paid { background:#e9f7ef; color:#1e7e34; }
+        .badge.refund { background:#ffecec; color:#b02a37; }
+        .badge.cancel { background:#f1f1f1; color:#7d8896; }
+        .badge.addr-ok { background:#eef3ff; color:#2b63f1; }
+        .badge.addr-need { background:#fff1f1; color:#b02a37; }
+        .badge.ship-ok { background:#e9f7ef; color:#1e7e34; }
+        .badge.ship-need { background:#fff6d8; color:#8a6d00; }
+        .divider { height:1px; background:#eef2f7; margin:14px 0; }
+        .modal { width:min(680px,100%); }
+        .section-title { font-weight:800; color:#223046; margin:2px 0 8px; }
+        .row { display:grid; grid-template-columns:160px 1fr; gap:10px; align-items:center; margin-bottom:12px; }
+    </style>
+</head>
+<body>
+    <aside class="cb-sidemenu"><!--개발시 해당 메뉴는 기존 메뉴를 사용하세요 {% include 'admin/navbar.html' %} -->
+        <div class="cb-sidemenu-inner cb-menu-style">
+            <div class="cb-menu-admin-logo" style="text-align:center; margin-bottom:12px;"><img src="test/testai.png" alt="사이트 로고" style="max-width:150px; object-fit:contain;"></div>
+            <div class="cb-menu-admin-name">테스트 관리자님<br></div>
+            <a><span class="cb-menu-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>로그아웃</a>
+            <div class="cb-menu-toggle-all" style="display: flex; gap: 15px; justify-content: flex-end; padding: 12px;">
+                <a type="button" onclick="expandAllMenus()" class="toggle_all" id="expandAllBtn_p">＋</a>
+                <a type="button" onclick="collapseAllMenus()" class="toggle_all" id="collapseAllBtn_p">－</a>
+            </div>
+            <div class="cb-menu-group" data-key="menu_general">
+                <div class="cb-menu-group-title" onclick="toggleMenuGroup(this)">스토어 관리</div>
+                <div class="cb-menu-group-body">
+                    <a href="01_01.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-store"></i></span>스토어 설정</a>
+                    <a href="01_02.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-chart-line"></i></span>매출 통계</a>
+                    <a href="01_03.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-tags"></i></span>카테고리 관리</a>
+                    <a href="01_04.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-boxes-stacked"></i></span>상품 관리</a>
+                    <a href="01_05.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>주문/결제 관리</a>
+                    <a href="01_06.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-basket-shopping"></i></span>장바구니 내역</a>
+                    <a href="01_07.html" class="cb-sidemenu-link"><span class="cb-menu-icon"><i class="fa-solid fa-ticket"></i></span>쿠폰 발행</a>
+                </div>
+            </div>
+            <a>&nbsp;</a>
+        </div>
+    </aside>
+    <div class="wrap">
+        <div class="title">
+            주문/결제 관리
+            <select id="siteIdSelect" name="site_id" onchange="location.href='?site_id='+this.value" style="width: 200px;">
+                <option value="">전체 사이트</option>
+                <option value="acb_allteaching_child">올티칭 유치원</option>
+                <option value="acb_academy_allteaching">올티칭 수학학원</option>
+                <option value="acb_songchon">세무법인 송촌</option>
+                <option value="acb_study_yi">올티칭스터디카페 물푸레점</option>
+                <option value="acb_mokdongmath">목동최상위수학학원</option>
+                <option value="acb_lms1">헬프lms</option>
+                <option value="acb_study_gm">스터디카페 광명점</option>
+                <option value="acb_study">구했어</option>
+                <option value="acb_studycafe">스터디카페</option>
+                <option value="acb_at_test">챗봇 테스트</option>
+                <option value="acb_culture">올티칭 컬쳐</option>
+                <option value="acb_cam">올티칭 캠퍼스</option>
+                <option value="acb_biz">올티칭 캠퍼스</option>
+                <option value="acb_ecce">올티칭 학점은행</option>
+                <option value="acb_ai">올티칭 AI</option>
+                <option value="acb_scce">올티칭 서사평</option>
+            </select>
+        </div>
+        <div class="ad_sub">※ 사이트 선택은 메인 관리자만 선택 가능합니다.</div>
+        <div class="sub">결제 완료된 주문은 <b>배송지/배송 정보</b>를 입력해야 합니다. “배송 정보 입력” 버튼으로 추가/수정하세요.</div>
+        <div class="topbar">
+            <div class="filter card" style="padding:10px 12px;">
+                <input class="box" id="q" placeholder="주문번호/고객명/이메일/상품 검색" />
+                <select id="fStatus" title="결제 상태">
+                    <option value="">상태 전체</option>
+                    <option value="pay_wait">결제대기</option>
+                    <option value="paid">결제완료</option>
+                    <option value="refund">환불</option>
+                    <option value="cancel">취소</option>
+                </select>
+                <button class="btn small" id="btnSearch">검색</button>
+                <button class="btn small ghost" id="btnReset">초기화</button>
+            </div>
+            <div class="spacer"></div>
+        </div>
+        <div class="card table-wrap">
+            <table id="tbl" aria-label="주문 목록">
+                <thead>
+                    <tr>
+                        <th style="width:120px;">주문번호</th>
+                        <th>고객</th>
+                        <th>상품/옵션</th>
+                        <th style="width:120px;">결제금액</th>
+                        <th style="width:110px;">결제상태</th>
+                        <th style="width:140px;">결제일시</th>
+                        <th style="width:120px;">배송지</th>
+                        <th style="width:120px;">배송정보</th>
+                        <th style="width:150px;">작업</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="pager-wrap" aria-label="페이지 이동">
+                <div class="page-size">
+                    <span class="hint">페이지당</span>
+                    <select id="selPageSize" class="box" style="width:auto; padding:8px 10px;">
+                        <option value="10">10개</option>
+                        <option value="20" selected>20개</option>
+                        <option value="30">30개</option>
+                        <option value="50">50개</option>
+                    </select>
+                </div>
+                <div class="pager" id="pager"></div>
+                <div class="range-info" id="rangeInfo">총 0건</div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="addrBackdrop" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addrTitle">
+            <div class="modal-h" id="addrTitle">배송 정보 입력</div>
+            <div class="modal-c">
+                <form id="addrForm">
+                    <input type="hidden" name="order_id" />
+                    <div class="section-title">1) 배송지 정보</div>
+                    <div class="row">
+                        <label for="rec_name">수령인</label>
+                        <input class="box" id="rec_name" name="rec_name" required maxlength="40" placeholder="예) 홍길동" />
+                    </div>
+                    <div class="row">
+                        <label for="rec_phone">연락처</label>
+                        <input class="box" id="rec_phone" name="rec_phone" required maxlength="20" placeholder="숫자/하이픈(-)" />
+                    </div>
+                    <div class="row">
+                        <label>우편번호</label>
+                        <div class="inline">
+                            <input class="box" id="post" name="post" style="width:120px;" placeholder="예) 06236" />
+                            <input class="box" id="addr1" name="addr1" style="min-width:240px; flex:1;" placeholder="기본주소" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label for="addr2">상세주소</label>
+                        <input class="box" id="addr2" name="addr2" placeholder="동/호수 등" />
+                    </div>
+                    <div class="row">
+                        <label for="memo">배송요청</label>
+                        <textarea class="box" id="memo" name="memo" rows="2" placeholder="예) 경비실에 맡겨주세요."></textarea>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="section-title">2) 배송 정보 (선택)</div>
+                    <div class="row">
+                        <label for="ship_carrier">배송사</label>
+                        <select class="box" id="ship_carrier" name="ship_carrier">
+                            <option value="">선택 안 함</option>
+                            <option value="cj">CJ대한통운</option>
+                            <option value="lotte">롯데택배</option>
+                            <option value="krpost">우체국택배</option>
+                            <option value="hanjin">한진택배</option>
+                            <option value="etc">기타</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <label for="ship_track">운송장 번호</label>
+                        <input class="box" id="ship_track" name="ship_track" maxlength="40" placeholder="예) 1234-5678-9012" />
+                    </div>
+                    <div class="row">
+                        <label for="ship_date">발송일</label>
+                        <input class="box" id="ship_date" name="ship_date" type="date" />
+                    </div>
+                    <div class="row">
+                        <label for="ship_memo">배송 메모</label>
+                        <input class="box" id="ship_memo" name="ship_memo" maxlength="100" placeholder="기사님 요청사항 등" />
+                    </div>
+                    <p class="hint" style="margin-top:10px;">입력 즉시 주문에 반영됩니다. 운송장 번호가 있으면 목록에서 <b>배송확인하기</b> 버튼이 표시됩니다.</p>
+                </form>
+            </div>
+            <div class="modal-f">
+                <button class="btn" id="btnAddrCancel">취소</button>
+                <button class="btn primary" id="btnAddrSave">저장</button>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop" id="confirmBackdrop" aria-hidden="true">
+        <div class="modal confirm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+            <div class="modal-h" id="confirmTitle">삭제 확인</div>
+            <div class="modal-c">
+                <p>선택한 주문을 삭제하시겠습니까?</p>
+                <p class="hint">정산/통계에 영향이 있을 수 있습니다.</p>
+            </div>
+            <div class="modal-f">
+                <button class="btn" id="btnConfirmCancel">취소</button>
+                <button class="btn danger" id="btnConfirmOk">삭제</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const fmtKRW = n => (n ?? 0).toLocaleString('ko-KR') + '원';
+        const now = new Date();
+        function dtMinusM(m){const d=new Date(now);d.setMinutes(d.getMinutes()-m);return d;}
+        function fDate(d){if(!d)return '-';const s=new Date(d);const pad=n=>String(n).padStart(2,'0');return `${s.getFullYear()}-${pad(s.getMonth()+1)}-${pad(s.getDate())} ${pad(s.getHours())}:${pad(s.getMinutes())}`;}
+        let orders=[{id:'A202409-001',buyer_name:'김민수',buyer_email:'ms.kim@example.com',items:'무선 이어폰 X1 / 블랙',amount:129000,status:'paid',paid_at:dtMinusM(30),addr:null,ship:null},{id:'A202409-002',buyer_name:'이지은',buyer_email:'jieun@example.com',items:'키보드 K87 / 청축',amount:79000,status:'pay_wait',paid_at:null,addr:null,ship:null},{id:'A202409-003',buyer_name:'Alex',buyer_email:'alex@example.com',items:'스마트 램프',amount:39000,status:'paid',paid_at:dtMinusM(240),addr:{name:'Alex',phone:'010-1234-5678',post:'06236',addr1:'서울 강남구 테헤란로',addr2:'123-45',memo:'문앞'},ship:{carrier:'cj',track:'1234567890',date:'2024-09-01',memo:''}},{id:'A202409-004',buyer_name:'박보라',buyer_email:'bora@example.com',items:'머그컵 2p',amount:9900,status:'cancel',paid_at:null,addr:null,ship:null},{id:'A202409-005',buyer_name:'정우성',buyer_email:'wsjung@example.com',items:'샘플 상품 1',amount:25000,status:'refund',paid_at:dtMinusM(1440),addr:null,ship:null},...Array.from({length:34}).map((_,i)=>({id:`B202409-${String(100+i)}`,buyer_name:`샘플고객${i+1}`,buyer_email:`sample${i+1}@ex.co`,items:`샘플 상품 ${i+1}`,amount:30000+i*500,status:(i%4===0?'paid':i%3===0?'refund':i%2===0?'pay_wait':'cancel'),paid_at:(i%4===0||i%3===0)?dtMinusM(300+i*10):null,addr:(i%6===0?{name:'수령인',phone:'010-1111-2222',post:'04524',addr1:'서울 중구',addr2:'101',memo:''}:null),ship:(i%6===0?{carrier:'krpost',track:'KR'+(9000+i),date:'2024-09-02',memo:''}:null)}))];
+        let filteredList=[];let page=1,pageSize=20;
+        const qs=(s,el=document)=>el.querySelector(s);
+        const qsa=(s,el=document)=>Array.from(el.querySelectorAll(s));
+        const elBody=()=>qs('#tbl tbody');
+        function statusBadge(s){return s==='paid'?'<span class="badge paid">결제완료</span>':s==='pay_wait'?'<span class="badge pay-wait">결제대기</span>':s==='refund'?'<span class="badge refund">환불</span>':'<span class="badge cancel">취소</span>';}
+        function addrBadge(addr){return addr?'<span class="badge addr-ok">입력됨</span>':'<span class="badge addr-need">미입력</span>';}
+        function shipBadge(ship){return ship&&ship.track?'<span class="badge ship-ok">등록됨</span>':'<span class="badge ship-need">미등록</span>';}
+        function renderTablePage(){
+            const tb=elBody();tb.innerHTML='';
+            const total=filteredList.length;const totalPages=Math.max(1,Math.ceil(total/pageSize));if(page>totalPages)page=totalPages;
+            const startIdx=(page-1)*pageSize;const endIdx=Math.min(startIdx+pageSize,total);const slice=filteredList.slice(startIdx,endIdx);
+            slice.forEach(row=>{
+                const tr=document.createElement('tr');const canInput=row.status==='paid';
+                const btnAddr=canInput?`<button class="btn small primary" data-addr="${row.id}">${row.addr||row.ship?'배송 정보 수정':'배송 정보 입력'}</button>`:'';
+                const btnShip=(row.status==='paid'&&row.ship&&row.ship.track)?`<button class="btn small" data-ship="${row.id}">배송확인하기</button>`:'';
+                tr.innerHTML=`
+                    <td data-label="주문번호"><b>${row.id}</b></td>
+                    <td data-label="고객"><div>${row.buyer_name}</div><div class="muted" style="font-size:12px">${row.buyer_email}</div></td>
+                    <td data-label="상품/옵션">${row.items}</td>
+                    <td data-label="결제금액">${fmtKRW(row.amount)}</td>
+                    <td data-label="결제상태">${statusBadge(row.status)}</td>
+                    <td data-label="결제일시">${row.paid_at?fDate(row.paid_at):'-'}</td>
+                    <td data-label="배송지">${addrBadge(row.addr)}</td>
+                    <td data-label="배송정보">${shipBadge(row.ship)}</td>
+                    <td data-label="작업"><div class="actions">${btnAddr}${btnShip}<button class="btn small danger" data-del="${row.id}">삭제</button></div></td>
+                `;
+                tb.appendChild(tr);
+            });
+            qsa('button[data-addr]').forEach(b=>b.addEventListener('click',()=>openAddrModal(b.dataset.addr)));
+            qsa('button[data-ship]').forEach(b=>b.addEventListener('click',()=>onShipCheck(b.dataset.ship)));
+            qsa('button[data-del]').forEach(b=>b.addEventListener('click',()=>openConfirm(b.dataset.del)));
+            renderPager(total,startIdx,endIdx,totalPages);
+        }
+        function renderPager(total,startIdx,endIdx,totalPages){
+            qs('#rangeInfo').textContent=total?`총 ${total.toLocaleString()}건 중 ${startIdx+1}–${endIdx} 표시`:'총 0건';
+            const cont=qs('#pager');cont.innerHTML='';
+            const prev=document.createElement('button');prev.className='page-btn';prev.textContent='‹';prev.title='이전 페이지';prev.disabled=page<=1;prev.addEventListener('click',()=>setPage(page-1));cont.appendChild(prev);
+            const maxShow=7;let start=Math.max(1,page-Math.floor(maxShow/2));let end=Math.min(totalPages,start+maxShow-1);if(end-start+1<maxShow)start=Math.max(1,end-maxShow+1);
+            for(let p=start;p<=end;p++){const b=document.createElement('button');b.className='page-btn'+(p===page?' active':'');b.textContent=p;b.setAttribute('aria-label',`페이지 ${p}`);b.addEventListener('click',()=>setPage(p));cont.appendChild(b);}
+            const next=document.createElement('button');next.className='page-btn';next.textContent='›';next.title='다음 페이지';next.disabled=page>=totalPages;next.addEventListener('click',()=>setPage(page+1));cont.appendChild(next);
+        }
+        function setPage(p){page=Math.max(1,p);renderTablePage();const top=qs('.table-wrap').getBoundingClientRect().top+window.scrollY-10;window.scrollTo({top,behavior:'smooth'});}
+        function buildFilteredList(){
+            const q=qs('#q').value.trim().toLowerCase();const st=qs('#fStatus').value;let list=orders.slice();
+            if(q){list=list.filter(o=>(o.id||'').toLowerCase().includes(q)||(o.buyer_name||'').toLowerCase().includes(q)||(o.buyer_email||'').toLowerCase().includes(q)||(o.items||'').toLowerCase().includes(q));}
+            if(st){list=list.filter(o=>o.status===st);}
+            const weight=s=>s==='paid'?0:s==='pay_wait'?1:s==='refund'?2:3;
+            list.sort((a,b)=>{const wa=weight(a.status),wb=weight(b.status);if(wa!==wb)return wa-wb;const da=(a.paid_at?new Date(a.paid_at).getTime():0),db=(b.paid_at?new Date(b.paid_at).getTime():0);if(da!==db)return db-da;return (b.id||'').localeCompare(a.id||'');});
+            filteredList=list;
+        }
+        function applyAndRender(reset=false){buildFilteredList();if(reset)page=1;renderTablePage();}
+        function openAddrModal(orderId){
+            const row=orders.find(o=>o.id===orderId);if(!row)return;if(row.status!=='paid'){alert('결제 완료된 주문만 입력 가능합니다.');return;}
+            const f=qs('#addrForm');f.order_id.value=row.id;qs('#addrTitle').textContent=`배송 정보 ${row.addr||row.ship?'수정':'입력'} · ${row.id}`;
+            qs('#rec_name').value=row.addr?.name||row.buyer_name||'';qs('#rec_phone').value=row.addr?.phone||'';qs('#post').value=row.addr?.post||'';qs('#addr1').value=row.addr?.addr1||'';qs('#addr2').value=row.addr?.addr2||'';qs('#memo').value=row.addr?.memo||'';
+            qs('#ship_carrier').value=row.ship?.carrier||'';qs('#ship_track').value=row.ship?.track||'';qs('#ship_date').value=row.ship?.date||'';qs('#ship_memo').value=row.ship?.memo||'';
+            const bd=qs('#addrBackdrop');bd.style.display='flex';bd.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';setTimeout(()=>qs('#rec_name').focus(),0);
+        }
+        function closeAddrModal(){const bd=qs('#addrBackdrop');bd.style.display='none';bd.setAttribute('aria-hidden','true');document.body.style.overflow='';qs('#addrForm').reset();}
+        function saveAddress(){
+            const f=qs('#addrForm');const id=f.order_id.value;
+            const addr={name:f.rec_name.value.trim(),phone:f.rec_phone.value.trim(),post:f.post.value.trim(),addr1:f.addr1.value.trim(),addr2:f.addr2.value.trim(),memo:f.memo.value.trim()};
+            if(!addr.name){alert('수령인을 입력하세요.');return;}
+            if(!addr.phone){alert('연락처를 입력하세요.');return;}
+            if(!addr.addr1){alert('기본주소를 입력하세요.');return;}
+            const shipCarrier=f.ship_carrier.value;const shipTrack=f.ship_track.value.trim();const shipDate=f.ship_date.value;const shipMemo=f.ship_memo.value.trim();
+            const ship=(shipCarrier||shipTrack||shipDate||shipMemo)?{carrier:shipCarrier||'',track:shipTrack||'',date:shipDate||'',memo:shipMemo||''}:null;
+            const idx=orders.findIndex(o=>o.id===id);if(idx>-1){orders[idx]={...orders[idx],addr,ship};}
+            closeAddrModal();applyAndRender();
+        }
+        function carrierName(code){return code==='cj'?'CJ대한통운':code==='lotte'?'롯데택배':code==='krpost'?'우체국택배':code==='hanjin'?'한진택배':'기타';}
+        function onShipCheck(id){const row=orders.find(o=>o.id===id);if(!row||!row.ship||!row.ship.track){alert('운송장 번호가 없습니다.');return;}alert(`주문 ${id}\n배송사: ${carrierName(row.ship.carrier)}\n운송장: ${row.ship.track}\n(데모: 실제 연동 시 배송사 조회 페이지로 이동)`);}
+        let deleteId=null;
+        function openConfirm(id){deleteId=id;const bd=qs('#confirmBackdrop');bd.style.display='flex';bd.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+        function closeConfirm(){deleteId=null;const bd=qs('#confirmBackdrop');bd.style.display='none';bd.setAttribute('aria-hidden','true');document.body.style.overflow='';}
+        function onDelete(id){orders=orders.filter(o=>o.id!==id);applyAndRender();}
+        qs('#btnSearch').addEventListener('click',()=>applyAndRender(true));
+        qs('#btnReset').addEventListener('click',()=>{qs('#q').value='';qs('#fStatus').value='';applyAndRender(true);});
+        let typingTimer;qs('#q').addEventListener('input',()=>{clearTimeout(typingTimer);typingTimer=setTimeout(()=>applyAndRender(true),200);});
+        qs('#fStatus').addEventListener('change',()=>applyAndRender(true));
+        qs('#selPageSize').addEventListener('change',e=>{pageSize=Number(e.target.value)||20;page=1;renderTablePage();});
+        qs('#btnAddrSave').addEventListener('click',saveAddress);
+        qs('#btnAddrCancel').addEventListener('click',closeAddrModal);
+        document.querySelectorAll('.modal-backdrop').forEach(bd=>{bd.addEventListener('click',e=>{if(e.target===bd){if(bd.id==='addrBackdrop')closeAddrModal();if(bd.id==='confirmBackdrop')closeConfirm();}});});
+        qs('#btnConfirmOk').addEventListener('click',()=>{if(deleteId)onDelete(deleteId);closeConfirm();});
+        qs('#btnConfirmCancel').addEventListener('click',closeConfirm);
+        applyAndRender(true);
+        pageSize=Number(qs('#selPageSize').value)||20;
+        renderTablePage();
+    </script>
+    <script>
+        function toggleMenuGroup(el){
+            const group=el.closest('.cb-menu-group');
+            const key=group.dataset.key;
+            const isCollapsed=group.classList.toggle('collapsed');
+            const states=JSON.parse(localStorage.getItem('cb_menu_states')||'{}');
+            states[key]=!isCollapsed;
+            localStorage.setItem('cb_menu_states',JSON.stringify(states));
+        }
+        function expandAllMenus(){
+            const states={};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group=>{
+                group.classList.remove('collapsed');
+                const key=group.getAttribute('data-key');
+                states[key]=true;
+            });
+            localStorage.setItem('cb_menu_states',JSON.stringify(states));
+        }
+        function collapseAllMenus(){
+            const states={};
+            document.querySelectorAll('.cb-menu-group[data-key]').forEach(group=>{
+                group.classList.add('collapsed');
+                const key=group.getAttribute('data-key');
+                states[key]=false;
+            });
+            localStorage.setItem('cb_menu_states',JSON.stringify(states));
+        }
+    </script>
+</body>
+</html>
